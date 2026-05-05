@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Дэшборд{% endblock %}
+
+{% block content %}
+
+<div class="greeting">
+    <h4>Добро пожаловать, !@ ВСТАВИТЬ ИМЯ ПОЛЬЗОВАТЕЛЯ @!</h4>
+    <p>Вот что происходит с вашим бизнесом сегодня, {{ current_day }} {{ current_month }} {{ current_year }}</p>
+</div>
+
+<div class="fast-stat">
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <p>ВСЕГО ЗАКАЗОВ</p>
+            <p>IMG</p>
+        </div>
+        <div class="value">
+            <p>Количество заказов</p>
+            <p>Процентное повышение\понижение</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <p>ВЫРУЧКА (МЕСЯЦ)</p>
+            <p>IMG</p>
+        </div>
+        <div class="value">
+            <p>Выручка в рублях</p>
+            <p>Процентное повышение\понижение</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <p>Активные кампании</p>
+            <p>IMG</p>
+        </div>
+        <div class="value">
+            <p>Количество активных рекламных кампаний</p>
+            <p>Процентное повышение\понижение</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <p>КОНВЕРСИЯ</p>
+            <p>IMG</p>
+        </div>
+        <div class="value">
+            <p>Проценты конверсии</p>
+            <p>Процентное повышение\понижение к норме</p>
+        </div>
+    </div>
+
+</div>
+
+<div class="dashboard-buttons">
+    <button class="create-order">
+        <p>+ Создать заказ</p>
+    </button>
+    <button class="start-ads">
+        <p>Запустить рекламу</p>
+    </button>
+    <button class="csv-export">
+        <p>Экспорт</p>
+    </button>
+</div>
+
+<div class="two-graphs">
+
+    <div class="orders-graphic">
+        <div class="stat-header">
+            <p>График заказов</p>
+            <p>ТРИ кнопки селектора</p>
+        </div>
+        <div class="graphs">
+            <p>САМ ГРАФИК</p>
+        </div>
+    </div>
+
+    <div class="circle-stat">
+        <div class="stat-header">
+            <p>По статусам</p>
+        </div>
+        <div class="circle-graph">
+            <p>САМ ГРАФИК КРУГОВОЙ</p>
+        </div>
+
+        <p>Доставлено</p>
+        <p>В обработке</p>
+        <p>Новые</p>
+        <p>Отменены</p>
+
+    </div>
+
+</div>
+
+<div class="lastest-orders">
+    <div class="stat-header">
+        <p>Последние заказы</p>
+        <a href="#">Все заказы</a>
+    </div>
+</div>
+
+{% endblock %}

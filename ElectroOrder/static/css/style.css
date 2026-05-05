@@ -73,7 +73,8 @@ body {
     scroll-behavior: smooth;
     
     /* Убираем горизонтальный скролл */
-    overflow-x: hidden;
+    height: 100vh;           /* ← ДОБАВИТЬ */
+    overflow: hidden;        /* ← ЗАМЕНИТЬ (было overflow-x: hidden) */
     
     /* Улучшение рендеринга шрифтов */
     -webkit-font-smoothing: antialiased;
@@ -134,17 +135,21 @@ body {
 }
 
 nav {
+    
     display: flex;
     justify-content: flex-start;
     flex-direction: column;
     flex-wrap: wrap;
-
-    flex-shrink: 0;          /* не сжимается */
-    background-color: #16161a; /* синий */
-    width: 22vh;
+    flex-shrink: 0;
+    background-color: #16161a;
+    width: 220px;            /* ✅ Фиксированная ширина */
     padding: 12px 10px;
-    min-height: 100dvh;
+    height: 100vh;           /* ✅ Заменить min-height на height */
     border-right: 1px solid #ffffff12;
+    overflow-y: auto;        /* ✅ Добавить скролл если меню большое */
+    position: sticky;        /* ✅ Фиксация */
+    top: 0;
+    left: 0;
 }
 
 .block-name {
@@ -225,6 +230,7 @@ nav {
     padding: 20px 20px 20px;
     /* box-shadow: 0 2px 4px rgba(0,0,0,0.1); */
     border-bottom: 1px solid #ffffff12;
+    flex-shrink: 0;          /* ✅ Добавить */
 
 }
 
@@ -238,6 +244,8 @@ nav {
     flex: 1;
     display: flex;
     flex-direction: column;
+    height: 100vh;           /* ✅ Добавить */
+    overflow: hidden;        /* ✅ Добавить */
 }
 
 .header-buttons {
@@ -272,6 +280,7 @@ nav {
     padding: 20px;
     background-color: #0f0f12;
     color: #f0f0f5;
+    overflow-y: auto;        /* ✅ Добавить скролл */
 }
 
 /* Icons */
@@ -373,4 +382,338 @@ nav {
     gap: 4px;
     font-size: 11.5px;
     font-weight: 500;
+}
+
+.greeting {
+
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+
+}
+
+.greeting p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: -3vh;
+}
+
+/* ============================================ */
+/* ТАБЛИЦА ПОСЛЕДНИХ ЗАКАЗОВ (ТЁМНАЯ ТЕМА)    */
+/* ============================================ */
+
+/* Основной контейнер */
+.latest-orders {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-top: 24px;
+}
+
+/* Заголовок */
+.latest-orders__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.latest-orders__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.latest-orders__all-link {
+    font-size: 13px;
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition-micro);
+}
+
+.latest-orders__all-link:hover {
+    color: var(--accent-teal);
+}
+
+/* Таблица */
+.latest-orders__table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+}
+
+.latest-orders__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+}
+
+.latest-orders__table thead th {
+    text-align: left;
+    padding: 10px 16px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.latest-orders__table tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    color: var(--text-secondary);
+}
+
+.latest-orders__table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.latest-orders__table tbody tr {
+    transition: background var(--transition-micro);
+}
+
+.latest-orders__table tbody tr:hover {
+    background-color: var(--bg-hover);
+}
+
+/* ID заказа */
+.order-id {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: -0.02em;
+}
+
+/* Клиент */
+.client-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.client-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.client-name {
+    color: var(--text-primary);
+    font-weight: 450;
+}
+
+/* Товар */
+.product-name {
+    color: var(--text-secondary);
+}
+
+.more-items {
+    display: inline-block;
+    background: var(--bg-overlay);
+    color: var(--text-secondary);
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 11px;
+    margin-left: 6px;
+    font-weight: 500;
+}
+
+/* Сумма */
+.order-amount {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+
+/* Статусы заказов */
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    letter-spacing: -0.01em;
+}
+
+/* Цвета статусов под тёмную тему */
+.status-new {
+    background: var(--status-info);
+    color: #0f0f12;
+}
+
+.status-pending {
+    background: var(--status-warning-dim);
+    color: var(--status-warning);
+}
+
+.status-processing {
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+}
+
+.status-shipped {
+    background: var(--accent-teal-dim);
+    color: var(--accent-teal);
+}
+
+.status-delivered {
+    background: var(--status-success-dim);
+    color: var(--status-success);
+}
+
+.status-cancelled {
+    background: var(--status-error-dim);
+    color: var(--status-error);
+}
+
+/* Дата */
+.order-date {
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    font-size: 12.5px;
+    font-family: var(--font-mono);
+}
+
+/* Иконка сортировки */
+.sort-icon {
+    font-size: 9px;
+    color: var(--text-tertiary);
+    margin-left: 3px;
+}
+
+/* Подвал таблицы */
+.latest-orders__footer {
+    padding: 14px 0 0;
+    margin-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+}
+
+.latest-orders__footer strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Пустое состояние */
+.empty-orders {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-tertiary);
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.empty-icon {
+    font-size: 32px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    color: var(--text-tertiary);
+    font-size: 13px;
+    margin: 0;
+}
+
+/* ============================================ */
+/* КНОПКИ ДЭШБОРДА                              */
+/* ============================================ */
+
+.dashboard-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 24px 0;
+}
+
+.dashboard-buttons button {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-micro);
+    border: 1px solid var(--border);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+}
+
+.dashboard-buttons button:hover {
+    background: var(--bg-overlay);
+    border-color: var(--border-accent);
+    color: var(--text-primary);
+}
+
+.create-order {
+    background: var(--accent-blue) !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.create-order:hover {
+    background: var(--accent-teal) !important;
+}
+
+/* ============================================ */
+/* ГРАФИКИ                                      */
+/* ============================================ */
+
+.two-graphs {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.orders-graphic,
+.circle-stat {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    min-height: 300px;
+}
+
+/* Стилизация скроллбара */
+.main-content::-webkit-scrollbar,
+nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.main-content::-webkit-scrollbar-track,
+nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.main-content::-webkit-scrollbar-thumb,
+nav::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 2px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover,
+nav::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
 }

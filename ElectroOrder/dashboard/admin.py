@@ -1,3 +1,38 @@
 from django.contrib import admin
+from .models import Order, Product, OrderItem
 
-# Register your models here.
+class OrderItemInLine(admin.TabularInline):
+
+    # Инлайн для отображения товаров внутри заказа
+
+    model = OrderItem
+    extra = 0 # Не показывать пустые строки
+    readonly_fields = ['price', 'total_price']
+
+    def total_price(self, obj):
+        return obj.total_price
+    
+    total_price.short_description = 'Сумма'
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'status', 'created_at']
+    list_filter = ['status', 'created_at']
+    search_fields = ['user__username', 'id']
+    inlines = [OrderItemInLine]
+    readonly_fields = ['created_at']
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if not instance.price and instance.product:
+                instance.price = instance.product.price
+            instance.save()
+        formset.save_m2m()
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ['name', 'price', 'stock', 'is_active']
+    list_filter = ['is_active']
+    search_fields = ['name']
+

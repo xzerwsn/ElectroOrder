@@ -1,3 +1,5 @@
+{% load static %}
+
 <nav>
 
     <div class="logo">
@@ -127,6 +129,16 @@
                 </a>
             </div>        
 
+        </div>
+    </div>
+
+    <div class="user-info">
+        <div class="ava">
+            {{ user.username|slice:":1"|upper }}
+        </div>
+        <div class="username">
+            <p>{{ user.username }}</p>
+            <p>Роль</p>
         </div>
     </div>
     

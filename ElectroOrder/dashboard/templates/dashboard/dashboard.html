@@ -1,12 +1,12 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} 
+{% load static %} 
 
-{% block title %}Дэшборд{% endblock %}
+{% block title %}Дэшборд{% endblock %} 
 
 {% block content %}
 
 <div class="greeting">
-    <h4>Добро пожаловать, !@ ВСТАВИТЬ ИМЯ ПОЛЬЗОВАТЕЛЯ @!</h4>
+    <h4>Добро пожаловать, {{user.username}}👋</h4>
     <p>Вот что происходит с вашим бизнесом сегодня, {{ current_day }} {{ current_month }} {{ current_year }}</p>
 </div>
 
@@ -18,8 +18,7 @@
             <p>IMG</p>
         </div>
         <div class="value">
-            <p>Количество заказов</p>
-            <p>Процентное повышение\понижение</p>
+            <p>{{ all_orders_count }}</p>
         </div>
     </div>
 
@@ -29,8 +28,8 @@
             <p>IMG</p>
         </div>
         <div class="value">
-            <p>Выручка в рублях</p>
-            <p>Процентное повышение\понижение</p>
+            <p>₽{{ month_revenue|default:0|floatformat:0 }}</p>
+            <p>+8%</p>
         </div>
     </div>
 
@@ -40,8 +39,8 @@
             <p>IMG</p>
         </div>
         <div class="value">
-            <p>Количество активных рекламных кампаний</p>
-            <p>Процентное повышение\понижение</p>
+            <p>12</p>
+            <p>+5%</p>
         </div>
     </div>
 
@@ -51,8 +50,8 @@
             <p>IMG</p>
         </div>
         <div class="value">
-            <p>Проценты конверсии</p>
-            <p>Процентное повышение\понижение к норме</p>
+            <p>3.2%</p>
+            <p>+0.5%</p>
         </div>
     </div>
 
@@ -99,10 +98,77 @@
 
 </div>
 
-<div class="lastest-orders">
-    <div class="stat-header">
-        <p>Последние заказы</p>
-        <a href="#">Все заказы</a>
+<!-- ТАБЛИЦА ПОСЛЕДНИХ ЗАКАЗОВ -->
+<div class="latest-orders">
+    <div class="latest-orders__header">
+        <h2 class="latest-orders__title">Последние заказы</h2>
+        <a href="#" class="latest-orders__all-link">
+            Все заказы →
+        </a>
+    </div>
+    
+    <div class="latest-orders__table-wrapper">
+        <table class="latest-orders__table">
+            <thead>
+                <tr>
+                    <th>№ ЗАКАЗА</th>
+                    <th>КЛИЕНТ</th>
+                    <th>ТОВАР</th>
+                    <th>СУММА <span class="sort-icon">↑</span></th>
+                    <th>СТАТУС</th>
+                    <th>ДАТА</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="order-row">
+                    <td>
+                        <span class="order-id">#ORD-{{ order.id }}</span>
+                    </td>
+                    <td>
+                        <div class="client-info">
+                            <div class="client-avatar">
+                                {{ order.user.get_full_name|default:order.user.username|slice:":1"|upper }}
+                            </div>
+                            <span class="client-name">{{ order.user.get_full_name|default:order.user.username }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="product-name" title="{{ order.first_product }}">
+                            {{ order.first_product|default:"—"|truncatechars:25 }}
+                        </span>
+                        {% if order.items_count and order.items_count > 1 %}
+                            <span class="more-items">+{{ order.items_count|add:"-1" }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="order-amount">₽{{ order.total_amount|floatformat:0 }}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ order.status }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="order-date">{{ order.created_at|date:"d.m.Y" }}</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-orders">
+                        <div class="empty-state">
+                            <span class="empty-icon">📦</span>
+                            <p>Заказов пока нет</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="latest-orders__footer">
+        <span>Всего заказов: <strong>{{ total_orders }}</strong></span>
     </div>
 </div>
 

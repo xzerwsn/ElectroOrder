@@ -1,112 +1,143 @@
-{% extends 'base.html' %} 
-{% load static %} 
+{% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Дэшборд{% endblock %} 
+{% block title %}Дэшборд{% endblock %}
 
 {% block content %}
 
+{{ orders_chart_data|default:'{}'|json_script:"orders-chart-data" }}
+{{ status_chart_data|default:'[]'|json_script:"status-chart-data" }}
+
 <div class="greeting">
-    <h4>Добро пожаловать, {{user.username}}👋</h4>
+    <h4>Добро пожаловать, {{ user.username }}👋</h4>
     <p>Вот что происходит с вашим бизнесом сегодня, {{ current_day }} {{ current_month }} {{ current_year }}</p>
 </div>
 
-<div class="fast-stat">
-
-    <div class="stat-card">
-        <div class="stat-header">
-            <p>ВСЕГО ЗАКАЗОВ</p>
-            <p>IMG</p>
+<div class="fast-stat dashboard-metrics">
+    <div class="stat-card metric-card animate-in">
+        <div class="metric-header">
+            <span class="metric-label">ВСЕГО ЗАКАЗОВ</span>
+            <div class="metric-icon blue" aria-hidden="true">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M5 7h6M5 9.5h4"/></svg>
+            </div>
         </div>
-        <div class="value">
-            <p>{{ all_orders_count }}</p>
-        </div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-header">
-            <p>ВЫРУЧКА (МЕСЯЦ)</p>
-            <p>IMG</p>
-        </div>
-        <div class="value">
-            <p>₽{{ month_revenue|default:0|floatformat:0 }}</p>
-            <p>+8%</p>
+        <div class="metric-value">{{ all_orders_count|default:0 }}</div>
+        <div class="metric-delta {% if orders_month_delta >= 0 %}up{% else %}down{% endif %}">
+            {% if orders_month_delta >= 0 %}
+                <svg viewBox="0 0 12 12" fill="none"><path d="M6 2L10 7H2L6 2z" fill="currentColor"/></svg>
+                +{{ orders_month_delta|default:0|floatformat:1 }}% за месяц
+            {% else %}
+                <svg viewBox="0 0 12 12" fill="none"><path d="M6 10L2 5h8L6 10z" fill="currentColor"/></svg>
+                {{ orders_month_delta|default:0|floatformat:1 }}% за месяц
+            {% endif %}
         </div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-header">
-            <p>Активные кампании</p>
-            <p>IMG</p>
+    <div class="stat-card metric-card animate-in">
+        <div class="metric-header">
+            <span class="metric-label">ВЫРУЧКА (МЕСЯЦ)</span>
+            <div class="metric-icon teal" aria-hidden="true">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v6M6.5 6.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5S9.3 8 8 8s-1.5.7-1.5 1.5S7.2 11 8 11s1.5-.7 1.5-1.5"/></svg>
+            </div>
         </div>
-        <div class="value">
-            <p>12</p>
-            <p>+5%</p>
-        </div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-header">
-            <p>КОНВЕРСИЯ</p>
-            <p>IMG</p>
-        </div>
-        <div class="value">
-            <p>3.2%</p>
-            <p>+0.5%</p>
+        <div class="metric-value">₽{{ month_revenue|default:0|floatformat:0 }}</div>
+        <div class="metric-delta {% if revenue_month_delta >= 0 %}up{% else %}down{% endif %}">
+            {% if revenue_month_delta >= 0 %}
+                <svg viewBox="0 0 12 12" fill="none"><path d="M6 2L10 7H2L6 2z" fill="currentColor"/></svg>
+                +{{ revenue_month_delta|default:0|floatformat:1 }}% к прошлому
+            {% else %}
+                <svg viewBox="0 0 12 12" fill="none"><path d="M6 10L2 5h8L6 10z" fill="currentColor"/></svg>
+                {{ revenue_month_delta|default:0|floatformat:1 }}% к прошлому
+            {% endif %}
         </div>
     </div>
 
+    <div class="stat-card metric-card animate-in">
+        <div class="metric-header">
+            <span class="metric-label">АКТИВН. КАМПАНИИ</span>
+            <div class="metric-icon green" aria-hidden="true">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 10L12 3l-2.5 10-3-2.5-1.5 2.5L4.5 11 3 10z"/></svg>
+            </div>
+        </div>
+        <div class="metric-value">{{ active_campaigns_count|default:0 }}</div>
+        <div class="metric-delta up">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M6 2L10 7H2L6 2z" fill="currentColor"/></svg>
+            реальные данные
+        </div>
+    </div>
+
+    <div class="stat-card metric-card animate-in">
+        <div class="metric-header">
+            <span class="metric-label">КОНВЕРСИЯ</span>
+            <div class="metric-icon amber" aria-hidden="true">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12L5 8l3 2 3-4 3 2"/><path d="M2 12h12"/></svg>
+            </div>
+        </div>
+        <div class="metric-value">{{ conversion_rate|default:0|floatformat:2 }}%</div>
+        <div class="metric-delta {% if conversion_delta >= 0 %}up{% else %}down{% endif %}">
+            {% if site_visits_count|default:0 == 0 %}
+                нет данных по визитам
+            {% elif conversion_delta >= 0 %}
+                <svg viewBox="0 0 12 12" fill="none"><path d="M6 2L10 7H2L6 2z" fill="currentColor"/></svg>
+                +{{ conversion_delta|default:0|floatformat:2 }}% к прошлому
+            {% else %}
+                <svg viewBox="0 0 12 12" fill="none"><path d="M6 10L2 5h8L6 10z" fill="currentColor"/></svg>
+                {{ conversion_delta|default:0|floatformat:2 }}% к прошлому
+            {% endif %}
+        </div>
+    </div>
 </div>
 
-<div class="dashboard-buttons">
-    <button class="create-order">
-        <p>+ Создать заказ</p>
+<div class="dashboard-buttons quick-actions">
+    <button type="button" class="btn btn-primary btn-glow btn-lg create-order" data-dashboard-action="create-order" data-create-order-url="/orders/create/json/">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg>
+        <span>Создать заказ</span>
     </button>
-    <button class="start-ads">
-        <p>Запустить рекламу</p>
+    <button type="button" class="btn btn-secondary btn-lg start-ads" data-dashboard-action="start-ads">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 10L12 3l-2.5 10-3-2.5-1.5 2.5L4.5 11 3 10z"/></svg>
+        <span>Запустить рекламу</span>
     </button>
-    <button class="csv-export">
-        <p>Экспорт</p>
+    <button type="button" class="btn btn-ghost csv-export" data-dashboard-action="export-csv">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 11v2h10v-2M8 3v7M5 7l3 3 3-3"/></svg>
+        <span>Экспорт</span>
     </button>
 </div>
 
-<div class="two-graphs">
-
-    <div class="orders-graphic">
-        <div class="stat-header">
-            <p>График заказов</p>
-            <p>ТРИ кнопки селектора</p>
+<div class="two-graphs dashboard-grid">
+    <div class="orders-graphic card chart-card" id="barChartCard">
+        <div class="section-title">
+            <span>График заказов</span>
+            <div class="section-title-actions chart-range-tabs" aria-label="Период графика заказов">
+                <button type="button" class="filter-chip active" data-chart-period="week">Нед.</button>
+                <button type="button" class="filter-chip" data-chart-period="month">Мес.</button>
+                <button type="button" class="filter-chip" data-chart-period="year">Год</button>
+            </div>
         </div>
-        <div class="graphs">
-            <p>САМ ГРАФИК</p>
+        <div class="chart-container" id="barChart">
+            <div class="chart-grid-lines" aria-hidden="true">
+                <div class="chart-grid-line"></div>
+                <div class="chart-grid-line"></div>
+                <div class="chart-grid-line"></div>
+                <div class="chart-grid-line"></div>
+            </div>
         </div>
     </div>
 
-    <div class="circle-stat">
-        <div class="stat-header">
-            <p>По статусам</p>
+    <div class="circle-stat card donut-card" id="donutCard" data-total-orders="{{ all_orders_count|default:0 }}">
+        <div class="section-title">По статусам</div>
+        <div class="donut-wrap">
+            <svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120" id="donutSvg" role="img" aria-label="Заказы по статусам"></svg>
+            <div class="donut-legend" id="donutLegend"></div>
         </div>
-        <div class="circle-graph">
-            <p>САМ ГРАФИК КРУГОВОЙ</p>
-        </div>
-
-        <p>Доставлено</p>
-        <p>В обработке</p>
-        <p>Новые</p>
-        <p>Отменены</p>
-
     </div>
-
 </div>
 
-<!-- ТАБЛИЦА ПОСЛЕДНИХ ЗАКАЗОВ -->
 <div class="latest-orders">
     <div class="latest-orders__header">
         <h2 class="latest-orders__title">Последние заказы</h2>
-        <a href="#" class="latest-orders__all-link">
-            Все заказы →
-        </a>
+        <a href="#" class="latest-orders__all-link">Все заказы →</a>
     </div>
-    
+
     <div class="latest-orders__table-wrapper">
         <table class="latest-orders__table">
             <thead>
@@ -122,44 +153,25 @@
             <tbody>
                 {% for order in orders %}
                 <tr class="order-row" data-order-id="{{ order.id }}">
-                    <td>
-                        <span class="order-id">#ORD-{{ order.id }}</span>
-                    </td>
+                    <td><span class="order-id">#ORD-{{ order.id }}</span></td>
                     <td>
                         <div class="client-info">
-                            <div class="client-avatar">
-                                {{ order.user.get_full_name|default:order.user.username|slice:":1"|upper }}
-                            </div>
+                            <div class="client-avatar">{{ order.user.get_full_name|default:order.user.username|slice:":1"|upper }}</div>
                             <span class="client-name">{{ order.user.get_full_name|default:order.user.username }}</span>
                         </div>
                     </td>
                     <td>
-                        <span class="product-name" title="{{ order.first_product }}">
-                            {{ order.first_product|default:"—"|truncatechars:25 }}
-                        </span>
-                        {% if order.items_count and order.items_count > 1 %}
-                            <span class="more-items">+{{ order.items_count|add:"-1" }}</span>
-                        {% endif %}
+                        <span class="product-name" title="{{ order.first_product }}">{{ order.first_product|default:"—"|truncatechars:25 }}</span>
+                        {% if order.items_count and order.items_count > 1 %}<span class="more-items">+{{ order.items_count|add:"-1" }}</span>{% endif %}
                     </td>
-                    <td>
-                        <span class="order-amount">₽{{ order.total_amount|floatformat:0 }}</span>
-                    </td>
-                    <td>
-                        <span class="status-badge status-{{ order.status }}">
-                            {{ order.get_status_display }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="order-date">{{ order.created_at|date:"d.m.Y" }}</span>
-                    </td>
+                    <td><span class="order-amount">₽{{ order.total_amount|floatformat:0 }}</span></td>
+                    <td><span class="status-badge status-{{ order.status }}"><span class="status-dot"></span>{{ order.get_status_display }}</span></td>
+                    <td><span class="order-date">{{ order.created_at|date:"d.m.Y" }}</span></td>
                 </tr>
                 {% empty %}
                 <tr>
                     <td colspan="6" class="empty-orders">
-                        <div class="empty-state">
-                            <span class="empty-icon">📦</span>
-                            <p>Заказов пока нет</p>
-                        </div>
+                        <div class="empty-state"><span class="empty-icon">📦</span><p>Заказов пока нет</p></div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -173,58 +185,100 @@
                 <h2><strong>Информация о заказе #ORD-</strong><span id="modalOrderId"></span></h2>
             </div>
             <div class="modal-content">
-                <div>
-                    <div class="form-label">Клиент</div>
-                    <div class="modal-user"><span id="modalOrderUser"></span></div>
-                </div>
-                <div>
-                    <div class="form-label">Сумма</div>
-                    <div class="modal-total-price">
-                        ₽<span id="modalOrderTotal"></span>
-                    </div>
-                </div>
-                <div>
-                    <div class="form-label">Товар</div>
-                    <div class="modal-product">
-                        Еще нет товаров в модели
-                    </div>
-                </div>
-                <div>
-                    <div class="form-label">Дата</div>
-                    <div class="modal-created-at">
-                        <span id="modalOrderCreated"></span>
-                    </div>
-                </div>
-                <div>
-                    <div class="form-label">Статус</div>
-                    <div style="margin-top:4px">
-                        <span class="status-badge status-delivered">
-                            <div class="status-dot ">
-
-                            </div>
-                            <span id="modalOrderStatus"></span>
-                        </span>
-                    </div>
-                </div>
-                <div>
-                    <div class="form-label">Источник</div>
-                    <div class="modal-ads">Сайт / VK Ads</div>
-                </div>
+                <div><div class="form-label">Клиент</div><div class="modal-user"><span id="modalOrderUser"></span></div></div>
+                <div><div class="form-label">Сумма</div><div class="modal-total-price">₽<span id="modalOrderTotal"></span></div></div>
+                <div><div class="form-label">Товар</div><div class="modal-product"><span id="modalOrderProduct">—</span></div></div>
+                <div><div class="form-label">Дата</div><div class="modal-created-at"><span id="modalOrderCreated"></span></div></div>
+                <div><div class="form-label">Статус</div><div style="margin-top:4px"><span class="status-badge status-delivered"><span class="status-dot"></span><span id="modalOrderStatus"></span></span></div></div>
+                <div><div class="form-label">Источник</div><div class="modal-ads">Сайт / VK Ads</div></div>
             </div>
             <div class="divider"></div>
             <div class="form-group">
                 <label class="form-label">Изменить статус</label>
                 <select class="form-select">
-                <option>Новый</option><option selected="">В обработке</option><option>Доставлен</option><option>Отменён</option>
+                    <option value="new">Новый</option>
+                    <option value="pending">В обработке</option>
+                    <option value="delivered">Доставлен</option>
+                    <option value="cancelled">Отменён</option>
                 </select>
                 <label class="form-label">Комментарий менеджера</label>
                 <textarea class="form-textarea" rows="3" placeholder="Добавить комментарий..."></textarea>
                 <div class="modal-footer">
-                    <button class="btn btn-ghost">Отмена</button>
-                    <button class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-ghost">Отмена</button>
+                    <button type="button" class="btn btn-primary">Сохранить</button>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="createOrderModal" class="modal">
+    <div class="modal-body">
+        <div class="modal-header">
+            <h2><strong>Создать заказ</strong></h2>
+            <button type="button" class="modal-close-btn" data-create-order-close aria-label="Закрыть">×</button>
+        </div>
+        <form id="createOrderForm" class="create-order-form">
+            <div class="modal-content modal-content-one-column">
+                <div class="form-field">
+                    <label class="form-label" for="createOrderUser">Клиент</label>
+                    <select id="createOrderUser" name="user_id" class="form-select" required>
+                        {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.get_full_name|default:customer.username }}</option>
+                        {% empty %}
+                            <option value="{{ user.id }}">{{ user.get_full_name|default:user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="createOrderProduct">Товар</label>
+                    <select id="createOrderProduct" name="product_id" class="form-select" required>
+                        {% for product in products_for_order %}
+                            <option
+                                value="{{ product.id }}"
+                                data-price="{{ product.price }}"
+                                data-stock="{{ product.stock }}"
+                            >
+                                {{ product.name }} — ₽{{ product.price }} / Остаток: {{ product.stock }}
+                            </option>
+                        {% empty %}
+                            <option value="" disabled selected>Нет доступных товаров</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="createOrderQuantity">Количество</label>
+                    <input 
+                        id="createOrderQuantity"
+                        name="quantity"
+                        type="number"
+                        class="form-input"
+                        value="1"
+                        min="1"
+                        required
+                    >
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="createOrderTotalPreview">Сумма</label>
+                    <div id="createOrderTotalPreview" class="form-input form-input-readonly" aria-live="polite">
+                        ₽
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="createOrderStatus">Статус</label>
+                    <select id="createOrderStatus" name="status" class="form-select" required>
+                        <option value="new">Новый</option>
+                        <option value="pending">В обработке</option>
+                        <option value="delivered">Доставлен</option>
+                        <option value="cancelled">Отменён</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-create-order-close>Отмена</button>
+                <button type="submit" class="btn btn-primary">Создать</button>
+            </div>
+        </form>
     </div>
 </div>
 

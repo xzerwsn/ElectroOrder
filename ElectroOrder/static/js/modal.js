@@ -21,14 +21,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalOrderStatus = document.getElementById('modalOrderStatus');
     const modalOrderTotal = document.getElementById('modalOrderTotal');
     const modalOrderCreated = document.getElementById('modalOrderCreated');
+    const modalOrderProduct = document.getElementById('modalOrderProduct');
     
     // Находим элементы формы
-    const statusSelect = modal.querySelector('.form-select');
-    const saveButton = modal.querySelector('.btn-primary');
-    const cancelButton = modal.querySelector('.btn-ghost');
+    const statusSelect = modal ? modal.querySelector('.form-select') : null;
+    const saveButton = modal ? modal.querySelector('.btn-primary') : null;
+    const cancelButton = modal ? modal.querySelector('.btn-ghost') : null;
     
     let currentOrderId = null;
     let currentOrderRow = null;
+
+    if (!modal) return;
+
+    const statusValueByDisplay = {
+        'Новый': 'new',
+        'В обработке': 'processing',
+        'Доставлен': 'delivered',
+        'Отменён': 'cancelled',
+        'Отменен': 'cancelled',
+        'new': 'new',
+        'processing': 'processing',
+        'delivered': 'delivered',
+        'cancelled': 'cancelled',
+    };
+
+    const statusDisplayByValue = {
+        new: 'Новый',
+        processing: 'В обработке',
+        delivered: 'Доставлен',
+        cancelled: 'Отменён',
+    };
 
     // Функция закрытия модалки
     function closeModal() {
@@ -50,7 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Открытие модалки при клике на строку таблицы
-    document.querySelector('.latest-orders__table tbody').addEventListener('click', async (e) => {
+    const ordersTableBody = document.querySelector('.latest-orders__table tbody');
+    if (!ordersTableBody) return;
+
+    ordersTableBody.addEventListener('click', async (e) => {
         const row = e.target.closest('.order-row');
         if (!row) return;
 
@@ -75,10 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
             modalOrderStatus.textContent = data.status;
             modalOrderTotal.textContent = data.total;
             modalOrderCreated.textContent = data.created_at;
+            modalOrderProduct.textContent = data.product || '—';
             
             // Устанавливаем текущий статус в селекте
             if (statusSelect) {
-                statusSelect.value = data.status;
+                statusSelect.value = statusValueByDisplay[data.status] || data.status;
             }
 
             modal.classList.add('show');
@@ -126,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const statusBadge = currentOrderRow.querySelector('.status-badge');
                     if (statusBadge) {
                         // 1. Получаем отображаемое имя статуса
-                        const statusDisplay = result.status || newStatus;
+                        const statusDisplay = result.status || statusDisplayByValue[newStatus] || newStatus;
                         
                         // 2. Убираем ВСЕ старые классы статусов
                         statusBadge.className = statusBadge.className
@@ -137,25 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         // 3. Добавляем новый класс статуса
                         statusBadge.classList.add(`status-${newStatus}`);
                         
-                        // 4. Обновляем текст
-                        statusBadge.textContent = statusDisplay;
-                        
-                        // 5. Обновляем точку статуса если есть
-                        const statusDot = statusBadge.querySelector('.status-dot');
-                        if (!statusDot) {
-                            // Если точки нет, можем добавить
-                            const dot = document.createElement('span');
-                            dot.className = 'status-dot';
-                            dot.style.cssText = `
-                                width: 6px;
-                                height: 6px;
-                                border-radius: 50%;
-                                background: currentColor;
-                                display: inline-block;
-                                margin-right: 4px;
-                            `;
-                            statusBadge.insertBefore(dot, statusBadge.firstChild);
-                        }
+                        // 4. Обновляем текст, сохраняя цветную точку
+                        statusBadge.innerHTML = `<span class="status-dot"></span>${statusDisplay}`;
                     }
                 }
                 
@@ -185,7 +194,7 @@ function showToast(type, title, message) {
         top: 20px;
         right: 20px;
         padding: 12px 20px;
-        background: ${type === 'success' ? '#059669' : '#dc2626'};
+        background: ${type === 'success' ? '#059669' : type === 'info' ? '#2563eb' : type === 'warning' ? '#d97706' : '#dc2626'};
         color: white;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);

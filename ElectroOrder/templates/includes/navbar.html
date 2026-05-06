@@ -1,10 +1,20 @@
 {% load static %}
 
-<nav>
+<!-- Оверлей для мобильного меню -->
+<div class="nav-overlay" id="navOverlay"></div>
+
+<nav id="mainNav">
+    <!-- Кнопка закрытия для мобильной версии -->
+    <button class="nav-close-btn" id="navCloseBtn" aria-label="Закрыть меню">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M18 6l-12 12"/>
+            <path d="M6 6l12 12"/>
+        </svg>
+    </button>
 
     <div class="logo">
         <div class="logo-container">
-
             <div class="logo-icon-container">
                 <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-category-plus">
                     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -24,8 +34,7 @@
 
     <div class="navigation">
         <p class="block-name">Главная</p>
-        <div class="nav-button">
-
+        <div class="nav-button {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
             <div class="button-block">
                 <a href="{% url 'dashboard:dashboard' %}">
                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-layout-dashboard">
@@ -38,12 +47,10 @@
                     <p>Дашборд</p>
                 </a>
             </div>
-
         </div>
 
         <p class="block-name">Продажи</p>
         <div class="nav-button">
-
             <div class="button-block">
                 <a href="#">
                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-table-alias">
@@ -56,11 +63,9 @@
                     <p>Заказы</p>
                 </a>
             </div>
-
         </div>
 
         <div class="nav-button">
-
             <div class="button-block">
                 <a href="#">
                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-cube-3d-sphere">
@@ -81,12 +86,10 @@
                     <p>Товары</p>
                 </a>
             </div>
-
         </div>    
 
         <p class="block-name">Маркетинг</p>
         <div class="nav-button">
-
             <div class="button-block">
                 <a href="#">
                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-send">
@@ -97,11 +100,9 @@
                     <p>Реклама</p>
                 </a>
             </div>
-
         </div>
         
         <div class="nav-button">
-
             <div class="button-block">
                 <a href="#">
                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chart-line">
@@ -112,12 +113,10 @@
                     <p>Аналитика</p>
                 </a>
             </div>        
-
         </div>
 
         <p class="block-name">Система</p>
         <div class="nav-button">
-
             <div class="button-block">
                 <a href="#">
                     <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings">
@@ -128,7 +127,6 @@
                     <p>Настройки</p>
                 </a>
             </div>        
-
         </div>
     </div>
 
@@ -141,6 +139,4 @@
             <p>Роль</p>
         </div>
     </div>
-    
-
 </nav>

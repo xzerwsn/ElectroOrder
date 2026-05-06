@@ -1,5 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_http_methods
+import json
 from django.utils import timezone
+from django.http import JsonResponse
 from .models import Order, OrderItem
 from django.db.models import OuterRef, Subquery, Count
 
@@ -78,3 +81,41 @@ def dashboard(request):
     }
 
     return render(request, "dashboard/dashboard.html", context)
+
+def order_detail(request, order_id):
+    order = get_object_or_404(Order.objects.select_related('user'), id=order_id)
+    data = {
+        'id': order.id,
+        'user': order.user.username,
+        'total': order.total_amount,
+        'status': order.get_status_display(),
+        'created_at': order.created_at.strftime('%d.%m.%Y'),
+    }
+
+    return JsonResponse(data)
+
+@require_http_methods(["PATCH"])
+def update_order_status(request, order_id):
+    try:
+        # Находим заказ по ID
+        order = Order.objects.get(id=order_id)
+
+        # Читаем, что прислал пользователь
+        data = json.loads(request.body)
+        new_status = data.get('status')
+
+        # Меняем статус и сохраняем
+        if new_status:
+
+            order.status = new_status
+            order.save()
+
+            return JsonResponse({
+                'success': True,
+                'status': order.get_status_display(),
+            })
+        
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Заказ не найден'}, status=404)
+    
+    return JsonResponse({'error': 'Неверный статус'}, status=400)

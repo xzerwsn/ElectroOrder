@@ -121,7 +121,7 @@
             </thead>
             <tbody>
                 {% for order in orders %}
-                <tr class="order-row">
+                <tr class="order-row" data-order-id="{{ order.id }}">
                     <td>
                         <span class="order-id">#ORD-{{ order.id }}</span>
                     </td>
@@ -166,9 +166,65 @@
             </tbody>
         </table>
     </div>
-    
-    <div class="latest-orders__footer">
-        <span>Всего заказов: <strong>{{ total_orders }}</strong></span>
+
+    <div id="orderModal" class="modal">
+        <div class="modal-body">
+            <div class="modal-header">
+                <h2><strong>Информация о заказе #ORD-</strong><span id="modalOrderId"></span></h2>
+            </div>
+            <div class="modal-content">
+                <div>
+                    <div class="form-label">Клиент</div>
+                    <div class="modal-user"><span id="modalOrderUser"></span></div>
+                </div>
+                <div>
+                    <div class="form-label">Сумма</div>
+                    <div class="modal-total-price">
+                        ₽<span id="modalOrderTotal"></span>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-label">Товар</div>
+                    <div class="modal-product">
+                        Еще нет товаров в модели
+                    </div>
+                </div>
+                <div>
+                    <div class="form-label">Дата</div>
+                    <div class="modal-created-at">
+                        <span id="modalOrderCreated"></span>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-label">Статус</div>
+                    <div style="margin-top:4px">
+                        <span class="status-badge status-delivered">
+                            <div class="status-dot ">
+
+                            </div>
+                            <span id="modalOrderStatus"></span>
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-label">Источник</div>
+                    <div class="modal-ads">Сайт / VK Ads</div>
+                </div>
+            </div>
+            <div class="divider"></div>
+            <div class="form-group">
+                <label class="form-label">Изменить статус</label>
+                <select class="form-select">
+                <option>Новый</option><option selected="">В обработке</option><option>Доставлен</option><option>Отменён</option>
+                </select>
+                <label class="form-label">Комментарий менеджера</label>
+                <textarea class="form-textarea" rows="3" placeholder="Добавить комментарий..."></textarea>
+                <div class="modal-footer">
+                    <button class="btn btn-ghost">Отмена</button>
+                    <button class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

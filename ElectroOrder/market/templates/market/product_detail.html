@@ -1,0 +1,80 @@
+{% extends "market/base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<section class="market-shell section product-view">
+    <div class="product-view__media">
+        <div class="product-visual">
+            <span>{{ product.category|title }}</span>
+            <strong>{{ product.name|slice:":1"|upper }}</strong>
+            <div class="product-visual__rings"></div>
+        </div>
+    </div>
+
+    <div class="product-view__content">
+        <span class="section-kicker">{{ product.category|title }}</span>
+        <h1>{{ product.name }}</h1>
+        <p class="product-view__sku">{{ product.subtitle }}</p>
+        <div class="product-view__lead">
+            <span>Рекомендовано для тех, кто хочет быстро понять, стоит ли устройство своих денег.</span>
+        </div>
+
+        <div class="product-view__price">
+            <strong>₽{{ product.price }}</strong>
+            <span>{{ product.badge }}</span>
+        </div>
+
+        <div class="product-view__meta">
+            <div class="meta-card">
+                <span>Наличие</span>
+                <strong>{{ product.stock }} шт.</strong>
+            </div>
+            <div class="meta-card">
+                <span>Категория</span>
+                <strong>{{ product.category|title }}</strong>
+            </div>
+        </div>
+
+        <div class="hero__actions">
+            <form method="post" action="{% url 'market:add_to_cart' product.id %}" class="inline-cart-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'market:cart' %}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="market-btn market-btn--primary">Добавить в корзину</button>
+            </form>
+            <a href="{% url 'market:catalog' %}" class="market-btn market-btn--ghost">Назад в каталог</a>
+            {% if user.is_authenticated and user.is_staff %}
+            <a href="{% url 'dashboard:dashboard' %}" class="market-btn market-btn--ghost">Открыть CRM</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="market-shell section">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Похожие товары</span>
+            <h2>Ещё из той же категории</h2>
+        </div>
+    </div>
+    <div class="product-grid">
+        {% for related in related_products %}
+        <article class="product-card" data-reveal>
+            <div class="product-card__badge">{{ related.badge }}</div>
+            <div class="product-card__body">
+                <span class="product-card__category">{{ related.category|title }}</span>
+                <h3>{{ related.name }}</h3>
+                <p>{{ related.subtitle }}</p>
+            </div>
+            <div class="product-card__foot">
+                <strong>₽{{ related.price }}</strong>
+                <a href="{% url 'market:product_detail' related.id %}" class="market-link">Подробнее</a>
+            </div>
+        </article>
+        {% empty %}
+        <div class="empty-state">Похожие товары пока не подобраны.</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

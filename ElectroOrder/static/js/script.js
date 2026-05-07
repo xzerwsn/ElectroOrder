@@ -1,205 +1,227 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const navButtons = document.querySelectorAll('.nav-button');
-    
-    // Установить первую кнопку активной по умолчанию
-    if (navButtons.length > 0) {
-        navButtons[0].classList.add('active');
-    }
-    
-    navButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Убираем active у всех
-            navButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // Добавляем active на текущую
-            this.classList.add('active');
-        });
-    });
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Элементы для мобильного меню
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-    const navCloseBtn = document.getElementById('navCloseBtn');
-    const navOverlay = document.getElementById('navOverlay');
-    const mainNav = document.getElementById('mainNav');
-    
-    // Функция открытия мобильного меню
-    function openMobileMenu() {
-        if (mainNav) {
-            mainNav.classList.add('mobile-open');
-        }
-        if (navOverlay) {
-            navOverlay.classList.add('active');
-        }
-        document.body.style.overflow = 'hidden';
-    }
-    
-    // Функция закрытия мобильного меню
-    function closeMobileMenu() {
-        if (mainNav) {
-            mainNav.classList.remove('mobile-open');
-        }
-        if (navOverlay) {
-            navOverlay.classList.remove('active');
-        }
-        document.body.style.overflow = '';
-    }
-    
-    // Обработчики событий
-    if (mobileMenuToggle) {
-        mobileMenuToggle.addEventListener('click', openMobileMenu);
-    }
-    
-    if (navCloseBtn) {
-        navCloseBtn.addEventListener('click', closeMobileMenu);
-    }
-    
-    if (navOverlay) {
-        navOverlay.addEventListener('click', closeMobileMenu);
-    }
-    
-    // Закрывать меню по клавише Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && mainNav && mainNav.classList.contains('mobile-open')) {
-            closeMobileMenu();
-        }
-    });
-    
-    // Закрывать меню при клике на пункт меню (для мобильных)
-    const navLinks = document.querySelectorAll('.button-block a');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                closeMobileMenu();
-            }
-        });
-    });
-    
-    // Автоматически закрывать меню при изменении размера экрана
-    let resizeTimer;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function() {
-            if (window.innerWidth > 768 && mainNav) {
-                closeMobileMenu();
-            }
-        }, 250);
-    });
-    
-    // Подсветка активного пункта меню (опционально)
-    const currentPath = window.location.pathname;
-    const menuLinks = document.querySelectorAll('.button-block a');
-    menuLinks.forEach(link => {
-        if (link.getAttribute('href') === currentPath) {
-            link.closest('.nav-button').classList.add('active');
-        }
-    });
-});
-
-/* ============================================ */
-/* DASHBOARD: реальные графики и действия       */
-/* ============================================ */
-document.addEventListener('DOMContentLoaded', function () {
-    initDashboardBarChart('week');
-    initDashboardDonutChart();
-    animateDashboardCharts();
-    initDashboardActions();
-    initDashboardRangeTabs();
-    initCreateOrderModal();
-});
-
 function readJsonScript(id, fallback) {
-    const el = document.getElementById(id);
-    if (!el) return fallback;
+    const element = document.getElementById(id);
+    if (!element) return fallback;
 
     try {
-        return JSON.parse(el.textContent || '');
-    } catch (error) {
-        console.warn(`Не удалось прочитать JSON из #${id}`, error);
+        return JSON.parse(element.textContent || "");
+    } catch (_error) {
         return fallback;
     }
 }
 
-function getOrdersChartData() {
-    return readJsonScript('orders-chart-data', {
-        week: [],
-        month: [],
-        year: [],
+function showToast(type, title, message) {
+    const container = document.getElementById("toastContainer");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <div class="toast-title">${title}</div>
+        <div class="toast-msg">${message || ""}</div>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add("hiding");
+        setTimeout(() => toast.remove(), 220);
+    }, 3200);
+}
+
+function exportTableToCsv(tableSelector, fileName) {
+    const table = document.querySelector(tableSelector);
+    if (!table) return;
+
+    const rows = [...table.querySelectorAll("tr")];
+    const csvRows = rows.map((row) => {
+        const cells = [...row.querySelectorAll("th, td")].filter((cell) => !cell.classList.contains("checkbox-col"));
+        return cells.map((cell) => `"${cell.innerText.replace(/\s+/g, " ").trim().replace(/"/g, '""')}"`).join(";");
+    });
+
+    const blob = new Blob(["\uFEFF" + csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${fileName}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+}
+
+function setTheme(theme) {
+    const html = document.documentElement;
+    const button = document.getElementById("themeToggle");
+    const nextTheme = theme || (html.dataset.theme === "dark" ? "light" : "dark");
+
+    if (button) {
+        button.classList.add("spinning");
+        setTimeout(() => button.classList.remove("spinning"), 420);
+    }
+
+    html.dataset.theme = nextTheme;
+    localStorage.setItem("eo-theme", nextTheme);
+}
+
+function initTheme() {
+    const savedTheme = localStorage.getItem("eo-theme");
+    if (savedTheme) {
+        document.documentElement.dataset.theme = savedTheme;
+    }
+
+    document.getElementById("themeToggle")?.addEventListener("click", () => setTheme());
+}
+
+function applyCompactMode(isCompact) {
+    document.body.classList.toggle("compact-mode", Boolean(isCompact));
+    localStorage.setItem("eo-compact-mode", isCompact ? "1" : "0");
+}
+
+function initCompactMode() {
+    const compactInput = document.getElementById("settingsCompact");
+    const saved = localStorage.getItem("eo-compact-mode") === "1";
+    applyCompactMode(saved);
+
+    if (compactInput) {
+        compactInput.checked = saved;
+        compactInput.addEventListener("change", () => applyCompactMode(compactInput.checked));
+    }
+}
+
+function initMobileMenu() {
+    const menu = document.getElementById("mainNav");
+    const overlay = document.getElementById("navOverlay");
+
+    const openMenu = () => {
+        menu?.classList.add("mobile-open");
+        overlay?.classList.add("active");
+    };
+
+    const closeMenu = () => {
+        menu?.classList.remove("mobile-open");
+        overlay?.classList.remove("active");
+    };
+
+    document.getElementById("mobileMenuToggle")?.addEventListener("click", openMenu);
+    document.getElementById("navCloseBtn")?.addEventListener("click", closeMenu);
+    overlay?.addEventListener("click", closeMenu);
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 860) closeMenu();
     });
 }
 
-function getStatusChartData() {
-    return readJsonScript('status-chart-data', []);
+function initNotificationsPanel() {
+    const toggle = document.getElementById("notificationsToggle");
+    const panel = document.getElementById("notificationsPanel");
+    const clearButton = document.getElementById("notificationsClear");
+    const list = document.getElementById("notificationsList");
+    const empty = document.getElementById("notificationsEmpty");
+    const dot = toggle?.querySelector(".notif-dot");
+
+    if (!toggle || !panel) return;
+
+    const close = () => {
+        panel.hidden = true;
+        panel.classList.remove("is-open");
+        toggle.setAttribute("aria-expanded", "false");
+    };
+
+    const open = () => {
+        panel.hidden = false;
+        panel.classList.add("is-open");
+        toggle.setAttribute("aria-expanded", "true");
+    };
+
+    toggle.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (panel.hidden) open();
+        else close();
+    });
+
+    clearButton?.addEventListener("click", () => {
+        if (list) list.innerHTML = "";
+        if (empty) empty.hidden = false;
+        if (dot) dot.hidden = true;
+    });
+
+    document.addEventListener("click", (event) => {
+        if (!panel.hidden && !event.target.closest(".topbar-dropdown-wrap")) close();
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") close();
+    });
 }
 
-function initDashboardBarChart(period) {
-    const container = document.getElementById('barChart');
+function initDashboardBarChart(defaultPeriod = "week") {
+    const container = document.getElementById("barChart");
     if (!container) return;
 
-    container.querySelectorAll('.chart-bar-wrap, .chart-empty').forEach((item) => item.remove());
+    const chartData = readJsonScript("orders-chart-data", { week: [], month: [], year: [] });
 
-    const chartData = getOrdersChartData();
-    const data = chartData[period] || [];
-    const maxCount = Math.max(...data.map((item) => Number(item.count || item.val || 0)), 0);
+    const render = (period) => {
+        container.querySelectorAll(".chart-bar-wrap, .chart-empty").forEach((node) => node.remove());
+        const data = chartData[period] || [];
+        const maxCount = Math.max(...data.map((item) => Number(item.count || 0)), 0);
 
-    if (!data.length || maxCount === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'chart-empty';
-        empty.textContent = 'За выбранный период заказов нет';
-        container.appendChild(empty);
-        return;
-    }
+        if (!data.length || maxCount === 0) {
+            const empty = document.createElement("div");
+            empty.className = "chart-empty";
+            empty.textContent = "За выбранный период заказов нет";
+            container.appendChild(empty);
+            return;
+        }
 
-    data.forEach((item, index) => {
-        const count = Number(item.count || item.val || 0);
-        const percent = Math.max(8, Math.round((count / maxCount) * 100));
+        data.forEach((item, index) => {
+            const count = Number(item.count || 0);
+            const wrap = document.createElement("div");
+            wrap.className = "chart-bar-wrap";
 
-        const wrap = document.createElement('div');
-        wrap.className = 'chart-bar-wrap';
+            const value = document.createElement("span");
+            value.className = "chart-value";
+            value.textContent = count;
 
-        const bar = document.createElement('div');
-        bar.className = 'chart-bar';
-        bar.style.height = `${percent}%`;
-        bar.style.animationDelay = `${index * 80}ms`;
-        bar.title = `${item.label}: ${count} заказов`;
+            const bar = document.createElement("div");
+            bar.className = "chart-bar";
+            bar.style.height = `${Math.max(8, Math.round((count / maxCount) * 100))}%`;
+            bar.style.animationDelay = `${index * 80}ms`;
 
-        const label = document.createElement('span');
-        label.className = 'label';
-        label.textContent = item.label;
+            const label = document.createElement("span");
+            label.className = "label";
+            label.textContent = item.label;
 
-        const value = document.createElement('span');
-        value.className = 'chart-value';
-        value.textContent = count;
+            wrap.append(value, bar, label);
+            container.appendChild(wrap);
+        });
 
-        wrap.appendChild(value);
-        wrap.appendChild(bar);
-        wrap.appendChild(label);
-        container.appendChild(wrap);
+        requestAnimationFrame(() => {
+            container.querySelectorAll(".chart-bar").forEach((bar) => bar.classList.add("animated"));
+        });
+    };
+
+    render(defaultPeriod);
+
+    document.querySelectorAll("[data-chart-period]").forEach((button) => {
+        button.addEventListener("click", () => {
+            document.querySelectorAll("[data-chart-period]").forEach((item) => item.classList.remove("active"));
+            button.classList.add("active");
+            render(button.dataset.chartPeriod);
+        });
     });
 }
 
 function initDashboardDonutChart() {
-    const svg = document.getElementById('donutSvg');
-    const legend = document.getElementById('donutLegend');
-    if (!svg) return;
+    const svg = document.getElementById("donutSvg");
+    const legend = document.getElementById("donutLegend");
+    if (!svg || !legend) return;
 
-    svg.innerHTML = '';
-    if (legend) legend.innerHTML = '';
-
-    const data = getStatusChartData().filter((item) => Number(item.count || 0) > 0);
+    const data = readJsonScript("status-chart-data", []).filter((item) => Number(item.count || 0) > 0);
     const total = data.reduce((sum, item) => sum + Number(item.count || 0), 0);
 
-    if (!data.length || total === 0) {
-        const centerText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        centerText.setAttribute('x', '60');
-        centerText.setAttribute('y', '60');
-        centerText.setAttribute('text-anchor', 'middle');
-        centerText.setAttribute('dominant-baseline', 'middle');
-        centerText.classList.add('donut-center-sub');
-        centerText.textContent = 'нет заказов';
-        svg.appendChild(centerText);
-        if (legend) legend.innerHTML = '<div class="donut-empty">Нет данных по статусам</div>';
+    svg.innerHTML = "";
+    legend.innerHTML = "";
+
+    if (!total) {
+        legend.innerHTML = '<div class="donut-empty">Нет данных по статусам</div>';
         return;
     }
 
@@ -208,289 +230,229 @@ function initDashboardDonutChart() {
     const r = 40;
     const stroke = 14;
     const circumference = 2 * Math.PI * r;
-    let offsetPercent = 0;
+    let progress = 0;
 
-    const background = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    background.setAttribute('cx', cx);
-    background.setAttribute('cy', cy);
-    background.setAttribute('r', r);
-    background.setAttribute('fill', 'none');
-    background.setAttribute('stroke', 'var(--bg-overlay)');
-    background.setAttribute('stroke-width', stroke);
+    const background = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    background.setAttribute("cx", cx);
+    background.setAttribute("cy", cy);
+    background.setAttribute("r", r);
+    background.setAttribute("fill", "none");
+    background.setAttribute("stroke", "var(--bg-overlay)");
+    background.setAttribute("stroke-width", stroke);
     svg.appendChild(background);
 
     data.forEach((item, index) => {
         const count = Number(item.count || 0);
-        const percent = count / total;
-        const dashLength = percent * circumference;
-        const startOffset = circumference - offsetPercent * circumference;
+        const part = count / total;
+        const dashLength = part * circumference;
+        const startOffset = circumference - progress * circumference;
         const targetOffset = startOffset - dashLength;
 
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('cx', cx);
-        circle.setAttribute('cy', cy);
-        circle.setAttribute('r', r);
-        circle.setAttribute('fill', 'none');
-        circle.setAttribute('stroke', item.color || '#4da6ff');
-        circle.setAttribute('stroke-width', stroke);
-        circle.setAttribute('stroke-dasharray', `${dashLength} ${circumference - dashLength}`);
-        circle.setAttribute('stroke-dashoffset', startOffset);
-        circle.setAttribute('stroke-linecap', 'round');
-        circle.style.transform = 'rotate(-90deg)';
-        circle.style.transformOrigin = '60px 60px';
-        circle.style.setProperty('--target-offset', targetOffset);
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", cx);
+        circle.setAttribute("cy", cy);
+        circle.setAttribute("r", r);
+        circle.setAttribute("fill", "none");
+        circle.setAttribute("stroke", item.color || "#4da6ff");
+        circle.setAttribute("stroke-width", stroke);
+        circle.setAttribute("stroke-dasharray", `${dashLength} ${circumference - dashLength}`);
+        circle.setAttribute("stroke-dashoffset", startOffset);
+        circle.setAttribute("stroke-linecap", "round");
+        circle.style.transform = "rotate(-90deg)";
+        circle.style.transformOrigin = "60px 60px";
+        circle.style.setProperty("--target-offset", targetOffset);
         circle.style.animationDelay = `${index * 150}ms`;
-        circle.classList.add('donut-segment');
+        circle.classList.add("donut-segment");
         svg.appendChild(circle);
 
-        offsetPercent += percent;
+        progress += part;
     });
 
-    const centerTotal = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    centerTotal.setAttribute('x', cx);
-    centerTotal.setAttribute('y', cy - 2);
-    centerTotal.setAttribute('text-anchor', 'middle');
-    centerTotal.setAttribute('dominant-baseline', 'middle');
-    centerTotal.classList.add('donut-center-text');
-    centerTotal.textContent = total.toLocaleString('ru-RU');
-    svg.appendChild(centerTotal);
+    const totalText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    totalText.setAttribute("x", cx);
+    totalText.setAttribute("y", cy - 2);
+    totalText.setAttribute("text-anchor", "middle");
+    totalText.setAttribute("dominant-baseline", "middle");
+    totalText.classList.add("donut-center-text");
+    totalText.textContent = total.toLocaleString("ru-RU");
+    svg.appendChild(totalText);
 
-    const centerSub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    centerSub.setAttribute('x', cx);
-    centerSub.setAttribute('y', cy + 12);
-    centerSub.setAttribute('text-anchor', 'middle');
-    centerSub.classList.add('donut-center-sub');
-    centerSub.textContent = 'заказов';
-    svg.appendChild(centerSub);
+    const subText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    subText.setAttribute("x", cx);
+    subText.setAttribute("y", cy + 12);
+    subText.setAttribute("text-anchor", "middle");
+    subText.classList.add("donut-center-sub");
+    subText.textContent = "заказов";
+    svg.appendChild(subText);
 
-    if (legend) {
-        legend.innerHTML = data.map((item) => {
-            const count = Number(item.count || 0);
-            const percent = total > 0 ? Math.round((count / total) * 100) : 0;
-            return `
-                <div class="legend-item">
-                    <span class="legend-dot" style="background:${item.color || '#4da6ff'}"></span>
-                    <span class="legend-label">${item.label}</span>
-                    <span class="legend-val">${count} / ${percent}%</span>
-                </div>
-            `;
-        }).join('');
-    }
-}
+    legend.innerHTML = data.map((item) => {
+        const count = Number(item.count || 0);
+        const percent = Math.round((count / total) * 100);
+        return `
+            <div class="legend-item">
+                <span class="legend-dot" style="background:${item.color}"></span>
+                <span class="legend-label">${item.label}</span>
+                <span class="legend-val">${count} / ${percent}%</span>
+            </div>
+        `;
+    }).join("");
 
-function animateDashboardCharts() {
     requestAnimationFrame(() => {
-        document.querySelectorAll('.chart-bar').forEach((bar) => bar.classList.add('animated'));
-        document.querySelectorAll('.donut-segment').forEach((segment) => segment.classList.add('animated'));
-    });
-}
-
-function initDashboardRangeTabs() {
-    document.querySelectorAll('[data-chart-period]').forEach((button) => {
-        button.addEventListener('click', function () {
-            document.querySelectorAll('[data-chart-period]').forEach((item) => item.classList.remove('active'));
-            this.classList.add('active');
-            initDashboardBarChart(this.dataset.chartPeriod);
-            animateDashboardCharts();
-        });
+        svg.querySelectorAll(".donut-segment").forEach((segment) => segment.classList.add("animated"));
     });
 }
 
 function initDashboardActions() {
-    const startAdsButton = document.querySelector('[data-dashboard-action="start-ads"]');
-    const exportButton = document.querySelector('[data-dashboard-action="export-csv"]');
+    document.querySelector('[data-dashboard-action="start-ads"]')?.addEventListener("click", () => {
+        showToast("info", "Реклама", "Раздел рекламных кампаний подготовлен под дальнейшую интеграцию");
+    });
 
-    if (startAdsButton) {
-        startAdsButton.addEventListener('click', function () {
-            if (typeof showToast === 'function') {
-                showToast('info', 'Реклама', 'Раздел рекламных кампаний готов к подключению');
+    document.querySelector('[data-dashboard-action="export-csv"]')?.addEventListener("click", () => {
+        exportTableToCsv(".orders-table", "orders_export");
+        showToast("success", "Экспорт", "CSV с заказами сформирован");
+    });
+
+    document.querySelector('[data-orders-action="advanced-filter"]')?.addEventListener("click", () => {
+        showToast("info", "Фильтры", "Расширенные фильтры можно подключить на следующем шаге");
+    });
+
+    document.querySelector('[data-orders-action="export-csv"]')?.addEventListener("click", () => {
+        exportTableToCsv("#ordersManagementTable", "orders_full");
+        showToast("success", "Экспорт", "CSV со всеми заказами сформирован");
+    });
+}
+
+function initOrdersFilters() {
+    const searchInput = document.getElementById("ordersSearch");
+    const rows = [...document.querySelectorAll("#ordersTableBody .order-row")];
+    const visibleCount = document.getElementById("ordersVisibleCount");
+    const selectAll = document.getElementById("selectAllOrders");
+    let currentStatus = "all";
+
+    if (!rows.length) return;
+
+    const apply = () => {
+        const query = (searchInput?.value || "").trim().toLowerCase();
+        let count = 0;
+
+        rows.forEach((row) => {
+            const statusMatch = currentStatus === "all" || row.dataset.status === currentStatus;
+            const searchMatch = !query || row.dataset.search.toLowerCase().includes(query);
+            const visible = statusMatch && searchMatch;
+            row.hidden = !visible;
+            if (visible) count += 1;
+        });
+
+        if (visibleCount) visibleCount.textContent = String(count);
+    };
+
+    searchInput?.addEventListener("input", apply);
+
+    document.querySelectorAll("[data-status-filter]").forEach((button) => {
+        button.addEventListener("click", () => {
+            currentStatus = button.dataset.statusFilter;
+            document.querySelectorAll("[data-status-filter]").forEach((item) => item.classList.remove("active"));
+            button.classList.add("active");
+            apply();
+        });
+    });
+
+    selectAll?.addEventListener("change", () => {
+        document.querySelectorAll(".row-checkbox").forEach((checkbox) => {
+            checkbox.checked = selectAll.checked;
+        });
+    });
+
+    apply();
+}
+
+function initProductActions() {
+    document.querySelector('[data-products-action="export"]')?.addEventListener("click", () => {
+        exportTableToCsv("#productsTable", "products_catalog");
+        showToast("success", "Экспорт", "CSV с товарами сформирован");
+    });
+
+    document.querySelector('[data-products-action="filter"]')?.addEventListener("click", () => {
+        showToast("info", "Фильтр", "Фильтрация товаров подключается отдельно от текущего экрана");
+    });
+}
+
+function initSettingsActions() {
+    document.querySelectorAll("[data-theme-choice]").forEach((button) => {
+        button.addEventListener("click", () => {
+            document.querySelectorAll("[data-theme-choice]").forEach((item) => item.classList.remove("active"));
+            button.classList.add("active");
+
+            if (button.dataset.themeChoice === "system") {
+                const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+                setTheme(prefersDark ? "dark" : "light");
+            } else {
+                setTheme(button.dataset.themeChoice);
             }
         });
-    }
-
-    if (exportButton) {
-        exportButton.addEventListener('click', exportOrdersTableToCsv);
-    }
-}
-
-function exportOrdersTableToCsv() {
-    const table = document.querySelector('.latest-orders__table');
-    if (!table) return;
-
-    const rows = [...table.querySelectorAll('tr')];
-    const csvRows = rows.map((row) => {
-        const cells = [...row.querySelectorAll('th, td')];
-        return cells.map((cell) => {
-            const value = cell.innerText.replace(/\s+/g, ' ').trim().replace(/"/g, '""');
-            return `"${value}"`;
-        }).join(';');
     });
 
-    const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'orders_export.csv';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    const saveProfileButton = document.querySelector('[data-settings-action="save-profile"]');
+    saveProfileButton?.addEventListener("click", async () => {
+        const fullName = document.getElementById("settingsProfileName")?.value.trim() || "";
+        const email = document.getElementById("settingsProfileEmail")?.value.trim() || "";
+        const url = saveProfileButton.dataset.settingsProfileUrl;
 
-    if (typeof showToast === 'function') {
-        showToast('success', 'Экспорт готов', 'CSV-файл с заказами скачан');
-    }
-}
-
-function initCreateOrderModal() {
-    const createButton = document.querySelector('[data-dashboard-action="create-order"]');
-    const modal = document.getElementById('createOrderModal');
-    const form = document.getElementById('createOrderForm');
-    if (!createButton || !modal || !form) return;
-
-    const submitButton = form.querySelector('button[type="submit"]');
-    const productSelect = document.getElementById('createOrderProduct');
-    const totalPreview = document.getElementById('createOrderTotalPreview');
-    const createUrl = createButton.dataset.createOrderUrl || '/orders/create/json/';
-
-    let isCreatingOrder = false;
-
-    function formatRub(value) {
-        const numberValue = Number(String(value || '0').replace(',', '.'));
-        if (Number.isNaN(numberValue)) return '₽0';
-        return `₽${numberValue.toLocaleString('ru-RU', { maximumFractionDigits: 2 })}`;
-    }
-
-    function updateCreateOrderTotalPreview() {
-        if (!productSelect || !totalPreview) return;
-        const selectedOption = productSelect.selectedOptions[0];
-        const price = selectedOption?.dataset.price || '0';
-        totalPreview.textContent = formatRub(price);
-    }
-
-    function openCreateModal() {
-        form.reset();
-        updateCreateOrderTotalPreview();
-        modal.classList.add('show');
-    }
-
-    function closeCreateModal() {
-        modal.classList.remove('show');
-    }
-
-    if (productSelect) {
-        productSelect.addEventListener('change', updateCreateOrderTotalPreview);
-        updateCreateOrderTotalPreview();
-    }
-
-    createButton.addEventListener('click', openCreateModal);
-
-    modal.querySelectorAll('[data-create-order-close]').forEach((button) => {
-        button.addEventListener('click', closeCreateModal);
-    });
-
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) closeCreateModal();
-    });
-
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        if (isCreatingOrder) {
-            return;
-        }
-
-        isCreatingOrder = true;
-
-        const formData = new FormData(form);
-        
-        // Создаём payload из данных формы
-        const payload = {
-            user_id: formData.get('user_id'),
-            product_id: formData.get('product_id'),
-            quantity: formData.get('quantity'),
-            status: formData.get('status'),
-        };
-
-        if (!payload.product_id) {
-            isCreatingOrder = false; // Добавьте эту строку, чтобы сбросить флаг
-            if (typeof showToast === 'function') {
-                showToast('error', 'Выберите товар', 'В заказ можно добавить только товар из списка доступных товаров');
-            }
-            return;
-        }
-
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.textContent = 'Создание...';
-        }
+        saveProfileButton.disabled = true;
+        saveProfileButton.textContent = "Сохранение...";
 
         try {
-            const response = await fetch(createUrl, {
-                method: 'POST',
+            const response = await fetch(url, {
+                method: "PATCH",
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': typeof getCookie === 'function' ? getCookie('csrftoken') : '',
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
                 },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({ full_name: fullName, email }),
             });
 
             const result = await response.json().catch(() => ({}));
-
             if (!response.ok || result.success === false) {
-                throw new Error(result.error || 'Не удалось создать заказ');
+                throw new Error(result.error || "Не удалось сохранить профиль");
             }
 
-            if (typeof showToast === 'function') {
-                showToast('success', 'Заказ создан', `#ORD-${result.order?.id || ''} добавлен на сумму ${formatRub(result.order?.total || 0)}`);
-            }
-
-            closeCreateModal();
-            setTimeout(() => window.location.reload(), 700);
+            document.getElementById("settingsProfileName").value = result.profile.full_name;
+            document.getElementById("settingsProfileEmail").value = result.profile.email;
+            showToast("success", "Профиль", "Изменения профиля сохранены");
         } catch (error) {
-            console.error('Ошибка создания заказа:', error);
-
-            isCreatingOrder = false;
-
-            if (typeof showToast === 'function') {
-                showToast('error', 'Ошибка', error.message || 'Не удалось создать заказ');
-            } else {
-                alert(error.message || 'Не удалось создать заказ');
-            }
+            showToast("error", "Ошибка", error.message || "Не удалось сохранить профиль");
         } finally {
-            if (!isCreatingOrder && submitButton) {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Создать';
-            }
+            saveProfileButton.disabled = false;
+            saveProfileButton.textContent = "Сохранить";
         }
+    });
+
+    document.querySelector('[data-settings-action="connect-telegram"]')?.addEventListener("click", () => {
+        showToast("info", "Telegram Ads", "Подключение Telegram Ads подготовлено к интеграции");
+    });
+
+    document.querySelector('[data-settings-action="2fa"]')?.addEventListener("click", () => {
+        showToast("info", "Безопасность", "Настройка двухфакторной авторизации будет следующим шагом");
+    });
+
+    document.querySelector('[data-settings-action="password"]')?.addEventListener("click", () => {
+        showToast("info", "Безопасность", "Смена пароля подключается отдельно");
+    });
+
+    document.querySelector('[data-settings-action="logout-all"]')?.addEventListener("click", () => {
+        showToast("warning", "Сессии", "Команда завершения всех сессий подготовлена");
     });
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const productSelect = document.getElementById('createOrderProduct');
-    const quantityInput = document.getElementById('createOrderQuantity');
-    const totalPreview = document.getElementById('createOrderTotalPreview');
-
-    if (!productSelect || !quantityInput || !totalPreview) {
-        return;
-    }
-
-    function updateTotalPreview() {
-        const selectedOption = productSelect.options[productSelect.selectedIndex];
-
-        if (!selectedOption || !selectedOption.value) {
-            totalPreview.textContent = '₽0';
-            return;
-        }
-
-        const price = Number(selectedOption.dataset.price || 0);
-        const quantity = Number(quantityInput.value || 1);
-        const total = price * quantity;
-
-        totalPreview.textContent = `₽${total.toLocaleString('ru-RU')}`;
-    }
-
-    productSelect.addEventListener('change', updateTotalPreview);
-    quantityInput.addEventListener('input', updateTotalPreview);
-
-    updateTotalPreview();
+document.addEventListener("DOMContentLoaded", () => {
+    initTheme();
+    initCompactMode();
+    initMobileMenu();
+    initNotificationsPanel();
+    initDashboardBarChart();
+    initDashboardDonutChart();
+    initDashboardActions();
+    initOrdersFilters();
+    initProductActions();
+    initSettingsActions();
 });

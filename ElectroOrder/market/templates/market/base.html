@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ElectroOrder Market{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/eo_ico.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'market/css/style.css' %}">
+</head>
+<body class="market-page market-page--{{ active_market_page|default:'default' }}" data-theme="light">
+    <div class="market-bg">
+        <div class="market-bg__orb market-bg__orb--one"></div>
+        <div class="market-bg__orb market-bg__orb--two"></div>
+        <div class="market-bg__orb market-bg__orb--three"></div>
+        <div class="market-bg__grid"></div>
+    </div>
+    <header class="market-header">
+        <div class="market-shell market-header__inner">
+            <a href="{% url 'market:home' %}" class="market-logo">
+                <span class="market-logo__mark">EO</span>
+                <span class="market-logo__text">
+                    <strong>ElectroOrder</strong>
+                    <span>Market</span>
+                </span>
+            </a>
+
+            <nav class="market-nav">
+                <a href="{% url 'market:home' %}" class="{% if active_market_page == 'home' %}active{% endif %}">Главная</a>
+                <a href="{% url 'market:catalog' %}" class="{% if active_market_page == 'catalog' %}active{% endif %}">Каталог</a>
+                <a href="{% url 'market:cart' %}" class="{% if active_market_page == 'cart' or active_market_page == 'checkout' %}active{% endif %}">Корзина{% if cart_items_count %} ({{ cart_items_count }}){% endif %}</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'market:profile' %}" class="{% if active_market_page == 'account' %}active{% endif %}">{{ user.get_full_name|default:user.username }}</a>
+                {% else %}
+                <a href="{% url 'market:login' %}" class="{% if active_market_page == 'login' %}active{% endif %}">Вход</a>
+                <a href="{% url 'market:register' %}" class="{% if active_market_page == 'register' %}active{% endif %}">Регистрация</a>
+                {% endif %}
+                {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'dashboard:dashboard' %}" target="_self">CRM</a>
+                {% endif %}
+            </nav>
+
+            <button type="button" class="theme-toggle" id="marketThemeToggle" aria-label="Переключить тему">
+                <span class="theme-toggle__sun">Light</span>
+                <span class="theme-toggle__moon">Dark</span>
+            </button>
+
+            {% if user.is_authenticated and user.is_staff %}
+            <div class="market-header__actions">
+                <a href="{% url 'dashboard:dashboard' %}" class="market-cta">Открыть CRM</a>
+                <form method="post" action="{% url 'market:logout' %}" class="market-inline-form">
+                    {% csrf_token %}
+                    <button type="submit" class="market-cta market-cta--ghost">Выйти</button>
+                </form>
+            </div>
+            {% elif user.is_authenticated %}
+            <form method="post" action="{% url 'market:logout' %}" class="market-inline-form">
+                {% csrf_token %}
+                <button type="submit" class="market-cta market-cta--ghost">Выйти</button>
+            </form>
+            {% else %}
+            <a href="{% url 'market:catalog' %}" class="market-cta">Перейти к покупкам</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="market-main">
+        {% if messages %}
+        <div class="market-shell market-messages">
+            {% for message in messages %}
+            <div class="market-message market-message--{{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="market-footer">
+        <div class="market-shell market-footer__inner">
+            <div>
+                <strong>ElectroOrder Market</strong>
+                <p>Интернет-магазин электроники: смартфоны, ноутбуки, аудио и аксессуары.</p>
+            </div>
+            <div class="market-footer__caption">Curated electronics storefront</div>
+        </div>
+    </footer>
+
+    <script src="{% static 'market/js/script.js' %}"></script>
+</body>
+</html>

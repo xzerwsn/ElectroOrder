@@ -1,0 +1,36 @@
+{% extends "market/base.html" %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<section class="market-shell section">
+    <div class="auth-layout">
+        <div class="auth-panel">
+            <span class="section-kicker">Вход</span>
+            <h1>Вернитесь к сохранённым товарам и заказам.</h1>
+            <p>Авторизация нужна для более удобного оформления покупок и истории заказов.</p>
+        </div>
+
+        <div class="auth-card">
+            <h2>Войти в аккаунт</h2>
+            <form method="post" class="auth-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                <div class="auth-errors">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                {% for field in form %}
+                <label>
+                    <span>{{ field.label }}</span>
+                    {{ field }}
+                    {% if field.errors %}<small class="field-error">{{ field.errors|join:", " }}</small>{% endif %}
+                </label>
+                {% endfor %}
+
+                <button type="submit" class="market-btn market-btn--primary market-btn--block">Войти</button>
+            </form>
+            <p class="auth-note">Нет аккаунта? <a href="{% url 'market:register' %}" class="market-link">Зарегистрируйтесь</a>.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

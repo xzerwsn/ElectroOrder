@@ -1,12 +1,11 @@
-// Функция для получения CSRF-токена из куки
 function getCookie(name) {
     let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (const rawCookie of cookies) {
+            const cookie = rawCookie.trim();
+            if (cookie.startsWith(`${name}=`)) {
+                cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
                 break;
             }
         }
@@ -14,222 +13,332 @@ function getCookie(name) {
     return cookieValue;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById('orderModal');
-    const modalOrderId = document.getElementById('modalOrderId');
-    const modalOrderUser = document.getElementById('modalOrderUser');
-    const modalOrderStatus = document.getElementById('modalOrderStatus');
-    const modalOrderTotal = document.getElementById('modalOrderTotal');
-    const modalOrderCreated = document.getElementById('modalOrderCreated');
-    const modalOrderProduct = document.getElementById('modalOrderProduct');
-    
-    // Находим элементы формы
-    const statusSelect = modal ? modal.querySelector('.form-select') : null;
-    const saveButton = modal ? modal.querySelector('.btn-primary') : null;
-    const cancelButton = modal ? modal.querySelector('.btn-ghost') : null;
-    
+function openModal(id) {
+    document.getElementById(id)?.classList.add("show");
+}
+
+function closeModal(id) {
+    document.getElementById(id)?.classList.remove("show");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll("[data-modal-close]").forEach((button) => {
+        button.addEventListener("click", () => closeModal(button.dataset.modalClose));
+    });
+
+    document.querySelectorAll(".modal").forEach((modal) => {
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) modal.classList.remove("show");
+        });
+    });
+
+    initOrderModal();
+    initCreateOrderModal();
+    initCreateProductModal();
+    initManageProductModal();
+});
+
+function initOrderModal() {
+    const modal = document.getElementById("orderModal");
+    const saveButton = document.getElementById("modalOrderSaveBtn");
+    const statusSelect = document.getElementById("modalOrderStatusSelect");
+    const badge = document.getElementById("modalOrderBadge");
+    if (!modal || !saveButton || !statusSelect || !badge) return;
+
     let currentOrderId = null;
     let currentOrderRow = null;
 
-    if (!modal) return;
-
-    const statusValueByDisplay = {
-        'Новый': 'new',
-        'В обработке': 'processing',
-        'Доставлен': 'delivered',
-        'Отменён': 'cancelled',
-        'Отменен': 'cancelled',
-        'new': 'new',
-        'processing': 'processing',
-        'delivered': 'delivered',
-        'cancelled': 'cancelled',
+    const updateBadge = (statusValue, statusLabel) => {
+        badge.className = `status-badge status-${statusValue}`;
+        badge.innerHTML = `<span class="status-dot"></span><span id="modalOrderStatus">${statusLabel}</span>`;
     };
 
-    const statusDisplayByValue = {
-        new: 'Новый',
-        processing: 'В обработке',
-        delivered: 'Доставлен',
-        cancelled: 'Отменён',
-    };
-
-    // Функция закрытия модалки
-    function closeModal() {
-        modal.classList.remove('show');
-        currentOrderId = null;
-        currentOrderRow = null;
-    }
-
-    // Закрытие по клику на фон
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
-
-    // Закрытие по кнопке "Отмена" (без onclick в HTML!)
-    if (cancelButton) {
-        cancelButton.addEventListener('click', closeModal);
-    }
-
-    // Открытие модалки при клике на строку таблицы
-    const ordersTableBody = document.querySelector('.latest-orders__table tbody');
-    if (!ordersTableBody) return;
-
-    ordersTableBody.addEventListener('click', async (e) => {
-        const row = e.target.closest('.order-row');
-        if (!row) return;
-
+    const openFromRow = async (row) => {
         const orderId = row.dataset.orderId;
         if (!orderId) return;
-        
-        currentOrderId = orderId;
-        currentOrderRow = row;
 
         try {
             const response = await fetch(`/orders/${orderId}/json/`);
-            
-            if (!response.ok) {
-                throw new Error('Не удалось загрузить данные заказа');
-            }
-            
+            if (!response.ok) throw new Error("Не удалось загрузить заказ");
+
             const data = await response.json();
-
-            // Заполняем данные в модалке
-            modalOrderId.textContent = data.id;
-            modalOrderUser.textContent = data.user;
-            modalOrderStatus.textContent = data.status;
-            modalOrderTotal.textContent = data.total;
-            modalOrderCreated.textContent = data.created_at;
-            modalOrderProduct.textContent = data.product || '—';
-            
-            // Устанавливаем текущий статус в селекте
-            if (statusSelect) {
-                statusSelect.value = statusValueByDisplay[data.status] || data.status;
-            }
-
-            modal.classList.add('show');
+            currentOrderId = orderId;
+            currentOrderRow = row;
+            document.getElementById("modalOrderId").textContent = `#ORD-${data.id}`;
+            document.getElementById("modalOrderUser").textContent = data.user;
+            document.getElementById("modalOrderTotal").textContent = data.total;
+            document.getElementById("modalOrderProduct").textContent = data.product || "—";
+            document.getElementById("modalOrderCreated").textContent = data.created_at;
+            statusSelect.value = data.status_value;
+            updateBadge(data.status_value, data.status);
+            openModal("orderModal");
         } catch (error) {
-            console.error('Ошибка загрузки заказа:', error);
-            alert('Не удалось загрузить информацию о заказе');
+            showToast("error", "Ошибка", error.message || "Не удалось открыть заказ");
         }
+    };
+
+    document.querySelectorAll(".order-row").forEach((row) => {
+        row.addEventListener("click", (event) => {
+            if (event.target.closest(".checkbox-wrap") || event.target.closest(".order-open-btn")) return;
+            openFromRow(row);
+        });
     });
 
-    // Сохранение изменений
-    if (saveButton) {
-        saveButton.addEventListener('click', async () => {
-            if (!currentOrderId) return;
-            
-            const newStatus = statusSelect.value;
-            
-            // Показываем что идет сохранение
-            saveButton.disabled = true;
-            saveButton.textContent = 'Сохранение...';
-            
-            try {
-                // ✅ ДОБАВЛЯЕМ CSRF-ТОКЕН
-                const response = await fetch(`/orders/${currentOrderId}/update-status/`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'), // ← ВОТ ОНО!
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Ошибка сохранения');
-                }
-                
-                const result = await response.json();
-
-                // Обновляем статус в модалке
-                if (result.status) {
-                    modalOrderStatus.textContent = result.status;
-                }
-
-                // ✅ ОБНОВЛЯЕМ СТАТУС В ТАБЛИЦЕ (исправленная версия)
-                if (currentOrderRow) {
-                    const statusBadge = currentOrderRow.querySelector('.status-badge');
-                    if (statusBadge) {
-                        // 1. Получаем отображаемое имя статуса
-                        const statusDisplay = result.status || statusDisplayByValue[newStatus] || newStatus;
-                        
-                        // 2. Убираем ВСЕ старые классы статусов
-                        statusBadge.className = statusBadge.className
-                            .split(' ')
-                            .filter(cls => !cls.startsWith('status-'))
-                            .join(' ');
-                        
-                        // 3. Добавляем новый класс статуса
-                        statusBadge.classList.add(`status-${newStatus}`);
-                        
-                        // 4. Обновляем текст, сохраняя цветную точку
-                        statusBadge.innerHTML = `<span class="status-dot"></span>${statusDisplay}`;
-                        
-                        // 5. ОБНОВЛЯЕМ data-атрибут строки для изменения цвета
-                        currentOrderRow.setAttribute('data-status', newStatus);
-                    }
-                }
-                
-                showToast(
-                    'success', 
-                    'Заказ обновлён', 
-                    `#ORD-${currentOrderId} успешно сохранён`
-                );
-                
-                closeModal();
-            } catch (error) {
-                console.error('Ошибка сохранения:', error);
-                alert('Не удалось сохранить изменения');
-            } finally {
-                saveButton.disabled = false;
-                saveButton.textContent = 'Сохранить';
-            }
+    document.querySelectorAll("[data-order-open]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+            event.stopPropagation();
+            const row = button.closest(".order-row");
+            if (row) openFromRow(row);
         });
-    }
-});
+    });
 
-// Функция для показа уведомлений (глобальная, доступна везде)
-function showToast(type, title, message) {
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 20px;
-        background: ${type === 'success' ? '#059669' : type === 'info' ? '#2563eb' : type === 'warning' ? '#d97706' : '#dc2626'};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 2000;
-        font-family: 'Inter', system-ui, sans-serif;
-        font-size: 14px;
-        animation: slideInRight 0.3s ease;
-    `;
-    
-    toast.innerHTML = `
-        <div style="font-weight: 600; margin-bottom: 4px;">${title}</div>
-        <div style="font-size: 13px; opacity: 0.9;">${message}</div>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    saveButton.addEventListener("click", async () => {
+        if (!currentOrderId) return;
+
+        saveButton.disabled = true;
+        saveButton.textContent = "Сохранение...";
+
+        try {
+            const response = await fetch(`/orders/${currentOrderId}/update-status/`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: JSON.stringify({ status: statusSelect.value }),
+            });
+
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.success === false) {
+                throw new Error(result.error || "Не удалось сохранить статус");
+            }
+
+            updateBadge(result.status_value, result.status);
+
+            if (currentOrderRow) {
+                currentOrderRow.dataset.status = result.status_value;
+                currentOrderRow.classList.remove("status-new", "status-pending", "status-delivered", "status-cancelled");
+                currentOrderRow.classList.add(`status-${result.status_value}`);
+
+                const rowBadge = currentOrderRow.querySelector(".status-badge");
+                if (rowBadge) {
+                    rowBadge.className = `status-badge status-${result.status_value}`;
+                    rowBadge.innerHTML = `<span class="status-dot"></span>${result.status}`;
+                }
+            }
+
+            showToast("success", "Заказ обновлён", `Статус заказа #ORD-${currentOrderId} сохранён`);
+            closeModal("orderModal");
+        } catch (error) {
+            showToast("error", "Ошибка", error.message || "Не удалось сохранить заказ");
+        } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = "Сохранить";
+        }
+    });
 }
 
-// Анимации для уведомлений
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
+function initCreateOrderModal() {
+    const triggerButtons = document.querySelectorAll('[data-dashboard-action="create-order"]');
+    const modal = document.getElementById("createOrderModal");
+    const form = document.getElementById("createOrderForm");
+    const submitButton = document.getElementById("createOrderSubmitBtn");
+    const productSelect = document.getElementById("createOrderProduct");
+    const quantityInput = document.getElementById("createOrderQuantity");
+    const totalPreview = document.getElementById("createOrderTotalPreview");
+    if (!modal || !form || !submitButton || !productSelect || !quantityInput || !totalPreview) return;
+
+    const createUrl = triggerButtons[0]?.dataset.createOrderUrl || "/orders/create/json/";
+    const formatRub = (value) => `₽${Number(value || 0).toLocaleString("ru-RU")}`;
+
+    const updateTotal = () => {
+        const option = productSelect.selectedOptions[0];
+        const price = Number(option?.dataset.price || 0);
+        const quantity = Number(quantityInput.value || 1);
+        totalPreview.textContent = formatRub(price * quantity);
+    };
+
+    triggerButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            form.reset();
+            updateTotal();
+            openModal("createOrderModal");
+        });
+    });
+
+    productSelect.addEventListener("change", updateTotal);
+    quantityInput.addEventListener("input", updateTotal);
+    updateTotal();
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Создание...";
+
+        const formData = new FormData(form);
+        const payload = {
+            user_id: formData.get("user_id"),
+            product_id: formData.get("product_id"),
+            quantity: formData.get("quantity"),
+            status: formData.get("status"),
+        };
+
+        try {
+            const response = await fetch(createUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.success === false) {
+                throw new Error(result.error || "Не удалось создать заказ");
+            }
+
+            showToast("success", "Заказ создан", `#ORD-${result.order.id} добавлен на сумму ${formatRub(result.order.total)}`);
+            closeModal("createOrderModal");
+            window.setTimeout(() => window.location.reload(), 500);
+        } catch (error) {
+            showToast("error", "Ошибка", error.message || "Не удалось создать заказ");
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = "Создать";
+        }
+    });
+}
+
+function initCreateProductModal() {
+    const triggerButton = document.querySelector('[data-products-action="add-product"]');
+    const modal = document.getElementById("createProductModal");
+    const form = document.getElementById("createProductForm");
+    const submitButton = document.getElementById("createProductSubmitBtn");
+    if (!triggerButton || !modal || !form || !submitButton) return;
+
+    const createUrl = triggerButton.dataset.createProductUrl || "/products/create/json/";
+
+    triggerButton.addEventListener("click", () => {
+        form.reset();
+        const activeInput = document.getElementById("createProductActive");
+        if (activeInput) activeInput.checked = true;
+        openModal("createProductModal");
+    });
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Создание...";
+
+        const formData = new FormData(form);
+        const payload = {
+            name: formData.get("name"),
+            price: formData.get("price"),
+            stock: formData.get("stock"),
+            is_active: formData.get("is_active") === "on",
+        };
+
+        try {
+            const response = await fetch(createUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.success === false) {
+                throw new Error(result.error || "Не удалось создать товар");
+            }
+
+            showToast("success", "Товар создан", `${result.product.name} добавлен в каталог`);
+            closeModal("createProductModal");
+            window.setTimeout(() => window.location.reload(), 500);
+        } catch (error) {
+            showToast("error", "Ошибка", error.message || "Не удалось создать товар");
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = "Создать";
+        }
+    });
+}
+
+function initManageProductModal() {
+    const modal = document.getElementById("productManageModal");
+    const form = document.getElementById("manageProductForm");
+    const submitButton = document.getElementById("manageProductSubmitBtn");
+    if (!modal || !form || !submitButton) return;
+
+    let currentDetailUrl = "";
+    let currentUpdateUrl = "";
+
+    const openProduct = async (button) => {
+        try {
+            const response = await fetch(button.dataset.productDetailUrl);
+            if (!response.ok) throw new Error("Не удалось загрузить товар");
+
+            const product = await response.json();
+            currentDetailUrl = button.dataset.productDetailUrl;
+            currentUpdateUrl = button.dataset.productUpdateUrl;
+
+            document.getElementById("manageProductSku").textContent = `SKU-${String(product.id).padStart(5, "0")}`;
+            document.getElementById("manageProductName").value = product.name;
+            document.getElementById("manageProductPrice").value = product.price;
+            document.getElementById("manageProductStock").value = product.stock;
+            document.getElementById("manageProductActive").checked = Boolean(product.is_active);
+
+            openModal("productManageModal");
+        } catch (error) {
+            showToast("error", "Ошибка", error.message || "Не удалось открыть товар");
+        }
+    };
+
+    document.querySelectorAll(".product-open-btn").forEach((button) => {
+        button.addEventListener("click", () => openProduct(button));
+    });
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!currentUpdateUrl) return;
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Сохранение...";
+
+        const payload = {
+            name: document.getElementById("manageProductName").value.trim(),
+            price: document.getElementById("manageProductPrice").value,
+            stock: document.getElementById("manageProductStock").value,
+            is_active: document.getElementById("manageProductActive").checked,
+        };
+
+        try {
+            const response = await fetch(currentUpdateUrl, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || result.success === false) {
+                throw new Error(result.error || "Не удалось сохранить товар");
+            }
+
+            showToast("success", "Товар обновлён", `${result.product.name} сохранён`);
+            closeModal("productManageModal");
+            window.setTimeout(() => window.location.reload(), 400);
+        } catch (error) {
+            showToast("error", "Ошибка", error.message || "Не удалось сохранить товар");
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = "Сохранить";
+        }
+    });
+}

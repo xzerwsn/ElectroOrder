@@ -1,142 +1,94 @@
-{% load static %}
-
-<!-- Оверлей для мобильного меню -->
 <div class="nav-overlay" id="navOverlay"></div>
 
-<nav id="mainNav">
-    <!-- Кнопка закрытия для мобильной версии -->
-    <button class="nav-close-btn" id="navCloseBtn" aria-label="Закрыть меню">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-            <path d="M18 6l-12 12"/>
-            <path d="M6 6l12 12"/>
-        </svg>
-    </button>
-
-    <div class="logo">
-        <div class="logo-container">
-            <div class="logo-icon-container">
-                <svg class="logo-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-category-plus">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                    <path d="M4 4h6v6h-6v-6" />
-                    <path d="M14 4h6v6h-6v-6" />
-                    <path d="M4 14h6v6h-6v-6" />
-                    <path d="M14 17h6m-3 -3v6" />
+<aside class="sidebar" id="mainNav">
+    <div class="sidebar-logo">
+        <button class="sidebar-close" id="navCloseBtn" aria-label="Закрыть меню">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
+        </button>
+        <a href="{% url 'dashboard:dashboard' %}" class="logo-mark">
+            <div class="logo-icon">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                    <rect x="2" y="2" width="5" height="5" rx="1"></rect>
+                    <rect x="9" y="2" width="5" height="5" rx="1"></rect>
+                    <rect x="2" y="9" width="5" height="5" rx="1"></rect>
+                    <path d="M11.5 9v5M9 11.5h5"></path>
                 </svg>
             </div>
-
             <div>
                 <div class="logo-text">ElectroOrder</div>
                 <div class="logo-sub">CRM</div>
             </div>
-        </div>
+        </a>
     </div>
 
-    <div class="navigation">
-        <p class="block-name">Главная</p>
-        <div class="nav-button {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-            <div class="button-block">
-                <a href="{% url 'dashboard:dashboard' %}">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-layout-dashboard">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M5 4h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1" />
-                        <path d="M5 16h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1" />
-                        <path d="M15 12h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1" />
-                        <path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1" />
-                    </svg>
-                    <p>Дашборд</p>
-                </a>
-            </div>
-        </div>
+    <div class="sidebar-nav">
+        <div class="nav-section-label">Главная</div>
+        <a href="{% url 'dashboard:dashboard' %}" class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <rect x="2" y="2" width="5" height="5" rx="1"></rect>
+                <rect x="9" y="2" width="5" height="3" rx="1"></rect>
+                <rect x="2" y="9" width="5" height="5" rx="1"></rect>
+                <rect x="9" y="7" width="5" height="7" rx="1"></rect>
+            </svg>
+            <span class="nav-label">Дашборд</span>
+        </a>
+        <a href="{% url 'market:home' %}" class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M2.5 6.5L8 2l5.5 4.5V13a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V6.5z"></path>
+                <path d="M6 14V9.5h4V14"></path>
+            </svg>
+            <span class="nav-label">Магазин</span>
+        </a>
 
-        <p class="block-name">Продажи</p>
-        <div class="nav-button">
-            <div class="button-block">
-                <a href="{% url 'dashboard:orders' %}">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-table-alias">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M3 12v-7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-7" />
-                        <path d="M3 10h18" />
-                        <path d="M10 3v10" />
-                        <path d="M2 17a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-4" />
-                    </svg>
-                    <p>Заказы</p>
-                </a>
-            </div>
-        </div>
+        <div class="nav-section-label">Продажи</div>
+        <a href="{% url 'dashboard:orders' %}" class="nav-item {% if active_page == 'orders' %}active{% endif %}">
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <rect x="2" y="3" width="12" height="10" rx="1.5"></rect>
+                <path d="M5 7h6M5 10h4"></path>
+            </svg>
+            <span class="nav-label">Заказы</span>
+            <span class="nav-badge">{{ all_orders_count|default:0 }}</span>
+        </a>
+        <a href="{% url 'dashboard:products' %}" class="nav-item {% if active_page == 'products' %}active{% endif %}">
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M2.5 5.5L8 2l5.5 3.5v5L8 14l-5.5-3.5v-5z"></path>
+                <path d="M8 2v12M2.5 5.5L8 9l5.5-3.5"></path>
+            </svg>
+            <span class="nav-label">Товары</span>
+        </a>
 
-        <div class="nav-button">
-            <div class="button-block">
-                <a href="#">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-cube-3d-sphere">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M6 17.6l-2 -1.1v-2.5" />
-                        <path d="M4 10v-2.5l2 -1.1" />
-                        <path d="M10 4.1l2 -1.1l2 1.1" />
-                        <path d="M18 6.4l2 1.1v2.5" />
-                        <path d="M20 14v2.5l-2 1.12" />
-                        <path d="M14 19.9l-2 1.1l-2 -1.1" />
-                        <path d="M12 12l2 -1.1" />
-                        <path d="M18 8.6l2 -1.1" />
-                        <path d="M12 12l0 2.5" />
-                        <path d="M12 18.5l0 2.5" />
-                        <path d="M12 12l-2 -1.12" />
-                        <path d="M6 8.6l-2 -1.1" />
-                    </svg>
-                    <p>Товары</p>
-                </a>
-            </div>
-        </div>    
+        <div class="nav-section-label">Маркетинг</div>
+        <a href="{% url 'ads:advert' %}" class="nav-item {% if active_page == 'advert' %}active{% endif %}">
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M3 10L12 3l-2.5 10-3-2.5-1.5 2.5L4.5 11 3 10z"></path>
+            </svg>
+            <span class="nav-label">Реклама</span>
+        </a>
+        <a href="{% url 'ads:analysis' %}" class="nav-item {% if active_page == 'analysis' %}active{% endif %}">
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <path d="M2 12L5 8l3 2 3-4 3 2"></path>
+                <path d="M2 12h12"></path>
+            </svg>
+            <span class="nav-label">Аналитика</span>
+        </a>
 
-        <p class="block-name">Маркетинг</p>
-        <div class="nav-button">
-            <div class="button-block">
-                <a href="#">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-send">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M10 14l11 -11" />
-                        <path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5" />
-                    </svg>
-                    <p>Реклама</p>
-                </a>
-            </div>
-        </div>
-        
-        <div class="nav-button">
-            <div class="button-block">
-                <a href="#">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chart-line">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M4 19l16 0" />
-                        <path d="M4 15l4 -6l4 2l4 -5l4 4" />
-                    </svg>
-                    <p>Аналитика</p>
-                </a>
-            </div>        
-        </div>
-
-        <p class="block-name">Система</p>
-        <div class="nav-button">
-            <div class="button-block">
-                <a href="#">
-                    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" />
-                        <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
-                    </svg>
-                    <p>Настройки</p>
-                </a>
-            </div>        
-        </div>
+        <div class="nav-section-label">Система</div>
+        <a href="{% url 'dashboard:settings' %}" class="nav-item {% if active_page == 'settings' %}active{% endif %}">
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <circle cx="8" cy="8" r="2.5"></circle>
+                <path d="M8 1.8v1.7M8 12.5v1.7M14.2 8h-1.7M3.5 8H1.8M12.6 3.4l-1.2 1.2M4.6 11.4l-1.2 1.2M12.6 12.6l-1.2-1.2M4.6 4.6L3.4 3.4"></path>
+            </svg>
+            <span class="nav-label">Настройки</span>
+        </a>
     </div>
 
-    <div class="user-info">
-        <div class="ava">
-            {{ user.username|slice:":1"|upper }}
-        </div>
-        <div class="username">
-            <p>{{ user.username }}</p>
-            <p>Роль</p>
+    <div class="sidebar-footer">
+        <div class="user-card">
+            <div class="avatar">{{ user.username|slice:":1"|upper }}</div>
+            <div class="user-info">
+                <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                <div class="user-role">Администратор</div>
+            </div>
         </div>
     </div>
-</nav>
+</aside>

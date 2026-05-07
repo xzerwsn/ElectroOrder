@@ -1,0 +1,65 @@
+{% extends "market/base.html" %}
+
+{% block title %}ElectroOrder Market{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="market-shell hero__grid">
+        <div class="hero__content">
+            <span class="hero__eyebrow">Новый магазин электроники</span>
+            <h1>От CRM к полноценной витрине продаж электроники.</h1>
+            <p>От бесконечного сравнения обзоров — к осознанному выбору за пару минут.</p>
+            <div class="hero__actions">
+                <a href="{% url 'market:catalog' %}" class="market-btn market-btn--primary">Открыть каталог</a>
+                {% if user.is_authenticated and user.is_staff %}
+                <a href="{% url 'dashboard:dashboard' %}" class="market-btn market-btn--ghost">Вернуться в CRM</a>
+                {% endif %}
+            </div>
+            <div class="hero__metrics">
+                <div class="hero-metric">
+                    <span>Коллекция</span>
+                    <strong>{{ products_count }}</strong>
+                </div>
+                <div class="hero-metric">
+                    <span>Категории</span>
+                    <strong>6</strong>
+                </div>
+                <div class="hero-metric">
+                    <span>Отбор</span>
+                    <strong>Top picks</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero__visual">
+            <div class="hero-showcase">
+                <div class="hero-showcase__chip">Premium tech</div>
+                <div class="hero-showcase__screen">
+                    <div class="hero-showcase__glow"></div>
+                    <div class="hero-showcase__headline">Ready for work. Tuned for play.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="market-shell section">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Категории</span>
+            <h2>Основные направления магазина</h2>
+        </div>
+    </div>
+    <div class="category-grid">
+        {% for category in market_categories %}
+        {% if category.key != 'all' %}
+        <a href="{% url 'market:catalog' %}?category={{ category.key }}" class="category-card" data-market-category-card="{{ category.key }}">
+            <div class="category-card__icon">{{ category.label|slice:":1" }}</div>
+            <strong>{{ category.label }}</strong>
+            <span>{{ category.count }} товаров</span>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

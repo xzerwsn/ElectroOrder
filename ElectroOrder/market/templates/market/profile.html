@@ -1,0 +1,101 @@
+{% extends "market/base.html" %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<section class="market-shell section">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Профиль</span>
+            <h2>Данные покупателя и история заказов</h2>
+        </div>
+        <button type="button" class="market-btn market-btn--primary" data-open-profile-modal>Редактировать</button>
+    </div>
+
+    <div class="profile-layout">
+        <div class="profile-summary">
+            <div class="profile-card" data-reveal>
+                <span class="section-kicker">Покупатель</span>
+                <h3>{{ profile_data.full_name }}</h3>
+                <div class="profile-facts">
+                    <div class="profile-fact">
+                        <span>Имя</span>
+                        <strong>{{ profile_data.first_name|default:"—" }}</strong>
+                    </div>
+                    <div class="profile-fact">
+                        <span>Фамилия</span>
+                        <strong>{{ profile_data.last_name|default:"—" }}</strong>
+                    </div>
+                    <div class="profile-fact">
+                        <span>Email</span>
+                        <strong>{{ profile_data.email|default:"—" }}</strong>
+                    </div>
+                    <div class="profile-fact">
+                        <span>Телефон</span>
+                        <strong>{{ profile_data.phone|default:"—" }}</strong>
+                    </div>
+                    <div class="profile-fact">
+                        <span>Город</span>
+                        <strong>{{ profile_data.city|default:"—" }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card" data-reveal>
+                <span class="section-kicker">Доставка</span>
+                <h3>Основной адрес</h3>
+                <p class="profile-address">{{ profile_data.delivery_address|default:"Адрес пока не указан." }}</p>
+            </div>
+        </div>
+
+        <div class="profile-orders">
+            <div class="profile-card" data-reveal>
+                <span class="section-kicker">Заказы</span>
+                <h3>Предыдущие покупки</h3>
+                <div class="orders-history">
+                    {% for order in profile_orders %}
+                    <article class="history-item">
+                        <div class="history-item__head">
+                            <strong>#{{ order.id }}</strong>
+                            <span>{{ order.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="history-item__meta">
+                            <span>{{ order.get_status_display }}</span>
+                            <strong>₽{{ order.total_amount }}</strong>
+                        </div>
+                        <div class="history-item__products">
+                            {% for item in order.items.all %}
+                            <span>{{ item.product.name }} × {{ item.quantity }}</span>
+                            {% endfor %}
+                        </div>
+                    </article>
+                    {% empty %}
+                    <div class="empty-state empty-state--panel">Заказов пока нет.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="market-modal" id="profileEditModal" hidden>
+    <div class="market-modal__overlay" data-close-profile-modal></div>
+    <div class="market-modal__panel">
+        <div class="market-modal__header">
+            <h3>Редактирование профиля</h3>
+            <button type="button" class="market-modal__close" data-close-profile-modal aria-label="Закрыть">×</button>
+        </div>
+        <form method="post" action="{% url 'market:update_profile' %}" class="auth-form">
+            {% csrf_token %}
+            {% for field in profile_form %}
+            <label>
+                <span>{{ field.label }}</span>
+                {{ field }}
+                {% if field.errors %}<small class="field-error">{{ field.errors|join:", " }}</small>{% endif %}
+            </label>
+            {% endfor %}
+            <button type="submit" class="market-btn market-btn--primary market-btn--block">Сохранить изменения</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

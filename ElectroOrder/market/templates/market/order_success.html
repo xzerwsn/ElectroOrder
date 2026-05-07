@@ -1,0 +1,35 @@
+{% extends "market/base.html" %}
+
+{% block title %}Заказ оформлен{% endblock %}
+
+{% block content %}
+<section class="market-shell section">
+    <div class="success-card">
+        <span class="section-kicker">Готово</span>
+        <h1>Заказ #{{ success_order.id }} успешно оформлен.</h1>
+        <p>Платёж подтверждён, а заказ уже передан в CRM для дальнейшей обработки.</p>
+
+        <div class="success-grid">
+            <div class="meta-card">
+                <span>Статус</span>
+                <strong>{{ success_order.get_status_display }}</strong>
+            </div>
+            <div class="meta-card">
+                <span>Сумма</span>
+                <strong>₽{{ success_order.total_amount }}</strong>
+            </div>
+            <div class="meta-card">
+                <span>Позиций</span>
+                <strong>{{ success_order.get_total_items }}</strong>
+            </div>
+        </div>
+
+        <div class="hero__actions">
+            <a href="{% url 'market:catalog' %}" class="market-btn market-btn--primary">Продолжить покупки</a>
+            {% if user.is_authenticated and user.is_staff %}
+            <a href="{% url 'dashboard:orders' %}" class="market-btn market-btn--ghost">Открыть заказ в CRM</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Аналитика{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ads/css/style.css' %}">
+{% endblock %}
+
+{% block content %}
+{{ orders_timeline_data|json_script:"orders-timeline-data" }}
+
+<section class="page-header">
+    <div class="page-header-row">
+        <div>
+            <div class="page-title">{{ page_title }}</div>
+            <div class="page-subtitle">{{ page_subtitle }} • период: {{ period_label }}</div>
+        </div>
+        <div class="products-header-actions">
+            <a class="btn btn-secondary btn-sm" href="?period=week">7 дней</a>
+            <a class="btn btn-secondary btn-sm" href="?period=month">30 дней</a>
+            <a class="btn btn-secondary btn-sm" href="?period=quarter">90 дней</a>
+        </div>
+    </div>
+</section>
+
+<section class="metrics-grid">
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Заказы</span>
+            <div class="metric-icon blue">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><path d="M5 7h6M5 10h4"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ orders_count }}</span>
+        <div class="metric-delta {% if orders_delta >= 0 %}up{% else %}down{% endif %}">
+            {% if orders_delta >= 0 %}+{% endif %}{{ orders_delta|floatformat:1 }}% к прошлому периоду
+        </div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Выручка</span>
+            <div class="metric-icon teal">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v6M6.5 6.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5S9.3 8 8 8s-1.5.7-1.5 1.5S7.2 11 8 11s1.5-.7 1.5-1.5"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">₽{{ orders_revenue|floatformat:0 }}</span>
+        <div class="metric-delta {% if revenue_delta >= 0 %}up{% else %}down{% endif %}">
+            {% if revenue_delta >= 0 %}+{% endif %}{{ revenue_delta|floatformat:1 }}%
+        </div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Средний чек</span>
+            <div class="metric-icon green">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M8 3v10"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">₽{{ average_check|floatformat:0 }}</span>
+        <div class="metric-delta {% if average_check_delta >= 0 %}up{% else %}down{% endif %}">
+            {% if average_check_delta >= 0 %}+{% endif %}{{ average_check_delta|floatformat:1 }}%
+        </div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Конверсия</span>
+            <div class="metric-icon amber">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12L5 8l3 2 3-4 3 2"></path><path d="M2 12h12"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ conversion_rate|floatformat:2 }}%</span>
+        <div class="metric-delta up">CTR {{ ctr|floatformat:2 }}%</div>
+    </div>
+</section>
+
+<section class="dashboard-grid ads-grid-analytics">
+    <div class="card chart-card">
+        <div class="section-title">Динамика заказов и выручки</div>
+        <div class="analytics-timeline" id="analyticsTimelineChart"></div>
+    </div>
+    <div class="card chart-card">
+        <div class="section-title">Каналы</div>
+        <div class="channel-list">
+            {% for channel in channel_breakdown %}
+            <div class="channel-card">
+                <div class="channel-card__head">
+                    <span class="channel-card__title">{{ channel.label }}</span>
+                    <span class="channel-card__metric">{{ channel.roas|floatformat:2 }}x</span>
+                </div>
+                <div class="channel-card__meta">{{ channel.campaigns_count }} камп. • {{ channel.leads }} лидов</div>
+                <div class="channel-card__bar">
+                    <span style="width:{% if spent_total %}{% widthratio channel.spent spent_total 100 %}{% else %}0{% endif %}%"></span>
+                </div>
+                <div class="channel-card__foot">
+                    <span>₽{{ channel.spent|floatformat:0 }}</span>
+                    <span>₽{{ channel.revenue|floatformat:0 }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-orders">Нет данных по каналам</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-grid ads-grid-analytics">
+    <div class="card table-card">
+        <div class="section-header-row">
+            <div class="section-title">Топ товаров</div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th><div class="th-inner">Товар</div></th>
+                        <th><div class="th-inner">Продано</div></th>
+                        <th><div class="th-inner">Выручка</div></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_products %}
+                    <tr>
+                        <td>{{ item.product__name }}</td>
+                        <td>{{ item.units }}</td>
+                        <td><span class="order-amount">₽{{ item.revenue|floatformat:0 }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="empty-orders">Нет данных по товарам за выбранный период</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card table-card">
+        <div class="section-header-row">
+            <div class="section-title">Кампании по эффективности</div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th><div class="th-inner">Кампания</div></th>
+                        <th><div class="th-inner">CTR</div></th>
+                        <th><div class="th-inner">CR</div></th>
+                        <th><div class="th-inner">ROAS</div></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for campaign in campaigns %}
+                    <tr>
+                        <td>{{ campaign.name }}</td>
+                        <td>{{ campaign.ctr|floatformat:2 }}%</td>
+                        <td>{{ campaign.conversion_rate|floatformat:2 }}%</td>
+                        <td>{{ campaign.roas|floatformat:2 }}x</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="empty-orders">Нет кампаний для анализа</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'ads/js/script.js' %}"></script>
+{% endblock %}

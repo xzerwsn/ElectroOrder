@@ -1,0 +1,98 @@
+<div id="orderModal" class="modal">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div class="modal-title">Информация о заказе <span id="modalOrderId"></span></div>
+            <button type="button" class="modal-close" data-modal-close="orderModal" aria-label="Закрыть">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"></path></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div><div class="form-label">Клиент</div><div class="modal-value" id="modalOrderUser"></div></div>
+                <div><div class="form-label">Сумма</div><div class="modal-value modal-value-accent">₽<span id="modalOrderTotal"></span></div></div>
+                <div><div class="form-label">Товар</div><div class="modal-value" id="modalOrderProduct">—</div></div>
+                <div><div class="form-label">Дата</div><div class="modal-value" id="modalOrderCreated"></div></div>
+                <div><div class="form-label">Статус</div><div class="modal-value"><span class="status-badge status-new" id="modalOrderBadge"><span class="status-dot"></span><span id="modalOrderStatus"></span></span></div></div>
+                <div><div class="form-label">Источник</div><div class="modal-value">Сайт / CRM</div></div>
+            </div>
+            <div class="divider"></div>
+            <div class="form-group">
+                <label class="form-label" for="modalOrderStatusSelect">Изменить статус</label>
+                <select id="modalOrderStatusSelect" class="form-select">
+                    <option value="new">Новый</option>
+                    <option value="pending">В обработке</option>
+                    <option value="delivered">Доставлен</option>
+                    <option value="cancelled">Отменён</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="modalOrderComment">Комментарий менеджера</label>
+                <textarea id="modalOrderComment" class="form-textarea" rows="3" placeholder="Добавить комментарий..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-ghost" data-modal-close="orderModal">Отмена</button>
+            <button type="button" class="btn btn-primary" id="modalOrderSaveBtn">Сохранить</button>
+        </div>
+    </div>
+</div>
+
+<div id="createOrderModal" class="modal">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div class="modal-title">Создать заказ</div>
+            <button type="button" class="modal-close" data-modal-close="createOrderModal" aria-label="Закрыть">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"></path></svg>
+            </button>
+        </div>
+        <form id="createOrderForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="createOrderUser">Клиент</label>
+                    <select id="createOrderUser" name="user_id" class="form-select" required>
+                        {% for customer in customers %}
+                        <option value="{{ customer.id }}">{{ customer.get_full_name|default:customer.username }}</option>
+                        {% empty %}
+                        <option value="{{ user.id }}">{{ user.get_full_name|default:user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="createOrderProduct">Товар</label>
+                    <select id="createOrderProduct" name="product_id" class="form-select" required>
+                        {% for product in products_for_order %}
+                        <option value="{{ product.id }}" data-price="{{ product.price }}" data-stock="{{ product.stock }}">
+                            {{ product.name }} — ₽{{ product.price }} / Остаток: {{ product.stock }}
+                        </option>
+                        {% empty %}
+                        <option value="" disabled selected>Нет доступных товаров</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="createOrderQuantity">Количество</label>
+                        <input id="createOrderQuantity" name="quantity" type="number" class="form-input" min="1" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="createOrderStatus">Статус</label>
+                        <select id="createOrderStatus" name="status" class="form-select" required>
+                            <option value="new">Новый</option>
+                            <option value="pending">В обработке</option>
+                            <option value="delivered">Доставлен</option>
+                            <option value="cancelled">Отменён</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Сумма</label>
+                    <div id="createOrderTotalPreview" class="form-input form-input-readonly">₽0</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-modal-close="createOrderModal">Отмена</button>
+                <button type="submit" class="btn btn-primary" id="createOrderSubmitBtn">Создать</button>
+            </div>
+        </form>
+    </div>
+</div>

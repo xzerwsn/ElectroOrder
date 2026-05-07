@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "dashboard",
     "orders",
     "ads",
+    "market",
 ]
 
 MIDDLEWARE = [

@@ -2,10 +2,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include('dashboard.urls')),
+    path("", include('market.urls')),
+    path("market/", RedirectView.as_view(url="/", permanent=False)),
+    path("crm/", include('dashboard.urls')),
     path("orders/", include('orders.urls')),
     path("advertisement/", include('ads.urls')),
 ]

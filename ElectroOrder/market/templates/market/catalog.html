@@ -1,0 +1,72 @@
+{% extends "market/base.html" %}
+
+{% block title %}Каталог электроники{% endblock %}
+
+{% block content %}
+<section class="catalog-hero">
+    <div class="market-shell catalog-hero__inner">
+        <div>
+            <span class="section-kicker">Каталог</span>
+            <h1>{{ catalog_title }}</h1>
+            <p>Отдельная витрина магазина на базе существующих товаров CRM.</p>
+        </div>
+        <div class="catalog-hero__stats">
+            <div class="catalog-stat">
+                <span>Найдено</span>
+                <strong>{{ catalog_products|length }}</strong>
+            </div>
+            <div class="catalog-stat">
+                <span>Фокус</span>
+                <strong>{{ selected_category|title }}</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="market-shell section">
+    <form class="filters" method="get">
+        <div class="filters__search">
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Поиск по названию товара">
+        </div>
+        <div class="filters__controls">
+            <select name="category">
+                {% for category in market_categories %}
+                <option value="{{ category.key }}" {% if selected_category == category.key %}selected{% endif %}>{{ category.label }}</option>
+                {% endfor %}
+            </select>
+            <label class="check-pill">
+                <input type="checkbox" name="in_stock" value="1" {% if in_stock_only %}checked{% endif %}>
+                <span>Только в наличии</span>
+            </label>
+            <button type="submit" class="market-btn market-btn--primary">Применить</button>
+        </div>
+    </form>
+
+    <div class="product-grid product-grid--catalog">
+        {% for product in catalog_products %}
+        <article class="product-card product-card--catalog" data-market-category="{{ product.category }}" data-reveal>
+            <div class="product-card__badge">{{ product.badge }}</div>
+            <div class="product-card__body">
+                <span class="product-card__category">{{ product.category|title }}</span>
+                <h3>{{ product.name }}</h3>
+                <p>{{ product.subtitle }} • {{ product.stock }} шт.</p>
+            </div>
+            <div class="product-card__surface"></div>
+            <div class="product-card__foot">
+                <strong>₽{{ product.price }}</strong>
+                <div class="product-card__actions">
+                    <a href="{% url 'market:product_detail' product.id %}" class="market-link">Открыть</a>
+                    <form method="post" action="{% url 'market:add_to_cart' product.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="market-btn market-btn--mini">В корзину</button>
+                    </form>
+                </div>
+            </div>
+        </article>
+        {% empty %}
+        <div class="empty-state">По текущим фильтрам товары не найдены.</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -441,3 +441,11 @@ def order_json(request, order_id):
         'product': product_name,
         'created_at': timezone.localtime(order.created_at).strftime('%d.%m.%Y %H:%M'),
     })
+
+def orders(request):
+
+    context = {
+        'title': 'Управление заказами'
+    }
+
+    return render(request, 'dashboard/orders.html', context)

@@ -1,5 +1,9 @@
 from django.shortcuts import render
 
-# Create your views here.
 def orders(request):
-    pass
+
+    context = {
+        "title": "Управление заказами",
+    }
+
+    return render(request, 'orders/orders.html', context)

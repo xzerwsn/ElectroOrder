@@ -402,13 +402,17 @@ function initCreateOrderModal() {
         isCreatingOrder = true;
 
         const formData = new FormData(form);
-
-        // Сумму намеренно не берём из формы: она рассчитывается на backend
-        // по выбранному product_id и сохраняется в order.total_amount.
-        delete payload.total_amount;
-        delete payload.product_name;
+        
+        // Создаём payload из данных формы
+        const payload = {
+            user_id: formData.get('user_id'),
+            product_id: formData.get('product_id'),
+            quantity: formData.get('quantity'),
+            status: formData.get('status'),
+        };
 
         if (!payload.product_id) {
+            isCreatingOrder = false; // Добавьте эту строку, чтобы сбросить флаг
             if (typeof showToast === 'function') {
                 showToast('error', 'Выберите товар', 'В заказ можно добавить только товар из списка доступных товаров');
             }

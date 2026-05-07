@@ -60,10 +60,6 @@
             </div>
         </div>
         <div class="metric-value">{{ active_campaigns_count|default:0 }}</div>
-        <div class="metric-delta up">
-            <svg viewBox="0 0 12 12" fill="none"><path d="M6 2L10 7H2L6 2z" fill="currentColor"/></svg>
-            реальные данные
-        </div>
     </div>
 
     <div class="stat-card metric-card animate-in">
@@ -152,7 +148,7 @@
             </thead>
             <tbody>
                 {% for order in orders %}
-                <tr class="order-row" data-order-id="{{ order.id }}">
+                <tr class="order-row" data-order-id="{{ order.id }}" data-status="{{ order.status }}">
                     <td><span class="order-id">#ORD-{{ order.id }}</span></td>
                     <td>
                         <div class="client-info">

@@ -165,6 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         // 4. Обновляем текст, сохраняя цветную точку
                         statusBadge.innerHTML = `<span class="status-dot"></span>${statusDisplay}`;
+                        
+                        // 5. ОБНОВЛЯЕМ data-атрибут строки для изменения цвета
+                        currentOrderRow.setAttribute('data-status', newStatus);
                     }
                 }
                 

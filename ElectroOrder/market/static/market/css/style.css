@@ -1146,6 +1146,10 @@ button {
     border: 1px solid rgba(255, 255, 255, 0.7);
 }
 
+.history-item__products, .history-item__head, .history-item__meta {
+    padding: 1vh;
+}
+
 .market-modal {
     position: fixed;
     inset: 0;
@@ -1414,17 +1418,18 @@ button {
 
     width: 100%;
     height: 25%;
-
-    transition: all 2s ease-out;
+    
 }
 
 .product-card_photo img{
 
     width: 100%;
     height: 25vh;
+    
+    transform: rotate(-1deg);
+    transition: all 0.3s ease-in;
 }
 
 .product-card_photo img:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(0,255,255,0.5);
 }

@@ -1406,3 +1406,25 @@ button {
         min-height: 360px;
     }
 }
+
+.product-visual_img img {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    height: 25%;
+
+    transition: all 2s ease-out;
+}
+
+.product-card_photo img{
+
+    width: 100%;
+    height: 25vh;
+}
+
+.product-card_photo img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0,255,255,0.5);
+}

@@ -82,6 +82,13 @@ class Product(models.Model):
         )
     is_active = models.BooleanField(default=True, verbose_name='Активен')
 
+    photo = models.ImageField(
+        upload_to='products/photos/',  # Папка для сохранения
+        verbose_name='Фотография',
+        blank=True,  # Необязательное поле
+        null=True   # Может быть NULL в базе данных
+    )
+
     class Meta:
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'

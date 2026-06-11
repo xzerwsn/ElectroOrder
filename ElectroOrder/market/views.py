@@ -48,6 +48,7 @@ def serialize_product(product):
         "name": product.name,
         "price": product.price or 0,
         "stock": product.stock or 0,
+        "photo": product.photo.url if product.photo else None,
         "is_active": product.is_active,
         "category": detect_category(product.name),
         "badge": "В наличии" if (product.stock or 0) > 0 else "Под заказ",

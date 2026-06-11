@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Order, Product, OrderItem
 
 class OrderItemInLine(admin.TabularInline):
@@ -32,7 +33,18 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'price', 'stock', 'is_active']
+    list_display = ['name', 'price', 'stock', 'is_active', 'photo_preview']
     list_filter = ['is_active']
     search_fields = ['name']
+    readonly_fields = ['photo_preview']
 
+    def photo_preview(self, obj):
+        """Показывает превью фотографии в админке"""
+        if obj.photo:
+            return format_html(
+                '<img src="{}" style="max-height: 200px;" />',
+                obj.photo.url
+            )
+        return "Нет фото"
+
+    photo_preview.short_description = 'Превью'

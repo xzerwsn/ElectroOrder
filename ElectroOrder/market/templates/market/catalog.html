@@ -45,6 +45,9 @@
     <div class="product-grid product-grid--catalog">
         {% for product in catalog_products %}
         <article class="product-card product-card--catalog" data-market-category="{{ product.category }}" data-reveal>
+            <div class="product-card_photo">
+                <img src="{{ product.photo }}" alt="{{ product.name }}">
+            </div>
             <div class="product-card__badge">{{ product.badge }}</div>
             <div class="product-card__body">
                 <span class="product-card__category">{{ product.category|title }}</span>

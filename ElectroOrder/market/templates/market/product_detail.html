@@ -7,7 +7,9 @@
     <div class="product-view__media">
         <div class="product-visual">
             <span>{{ product.category|title }}</span>
-            <strong>{{ product.name|slice:":1"|upper }}</strong>
+            <div class="product-visual_img">
+                <img src="{{ product.photo }}" alt="{{ product.name }}">
+            </div>
             <div class="product-visual__rings"></div>
         </div>
     </div>

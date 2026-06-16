@@ -1433,3 +1433,12 @@ button {
 .product-card_photo img:hover {
     transform: scale(1.05);
 }
+
+.svgContainer svg{
+    fill: var(--market-muted);
+    transition: fill 0.3s ease-in;
+}
+
+.svgContainer:hover svg{
+    fill: var(--market-ink);
+}

@@ -58,7 +58,7 @@ function initOrderModal() {
         if (!orderId) return;
 
         try {
-            const response = await fetch(`/orders/${orderId}/json/`);
+            const response = await fetch(`/crm/orders/${orderId}/json/`);
             if (!response.ok) throw new Error("Не удалось загрузить заказ");
 
             const data = await response.json();
@@ -99,7 +99,7 @@ function initOrderModal() {
         saveButton.textContent = "Сохранение...";
 
         try {
-            const response = await fetch(`/orders/${currentOrderId}/update-status/`, {
+            const response = await fetch(`/crm/orders/${currentOrderId}/update-status/`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",

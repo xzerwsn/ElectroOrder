@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Товары{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="page-header-row">
+        <div>
+            <div class="page-title">{{ page_title }}</div>
+            <div class="page-subtitle">{{ page_subtitle }}</div>
+        </div>
+        <button class="btn btn-primary btn-glow" type="button" data-products-action="add-product" data-create-product-url="{% url 'dashboard:create_product_json' %}">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1v12M1 7h12"></path></svg>
+            Добавить товар
+        </button>
+    </div>
+</section>
+
+<section class="metrics-grid metrics-grid-compact">
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Всего позиций</span>
+            <div class="metric-icon blue">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2.5 5.5L8 2l5.5 3.5v5L8 14l-5.5-3.5v-5z"></path><path d="M8 2v12"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ products_count }}</span>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Активные</span>
+            <div class="metric-icon green">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 8l2.2 2.2L12.5 4.5"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ active_products_count }}</span>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Низкий остаток</span>
+            <div class="metric-icon amber">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 2l6 11H2L8 2z"></path><path d="M8 6v3M8 11h.01"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ low_stock_products_count }}</span>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Стоимость склада</span>
+            <div class="metric-icon teal">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v6M6.5 6.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5S9.3 8 8 8s-1.5.7-1.5 1.5S7.2 11 8 11s1.5-.7 1.5-1.5"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">₽{{ total_stock_value }}</span>
+    </div>
+</section>
+
+<section class="card table-card">
+    <div class="section-header-row">
+        <div class="section-title">Список товаров</div>
+        <div class="products-header-actions">
+            <button class="btn btn-secondary btn-sm" type="button" data-products-action="filter">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 3h10M4 7h6M6 11h2"></path></svg>
+                Фильтр
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button" data-products-action="export">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 11v2h10v-2M8 3v7M5 7l3 3 3-3"></path></svg>
+                Экспорт CSV
+            </button>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table class="orders-table" id="productsTable" data-export-name="products_catalog">
+            <thead>
+                <tr>
+                    <th><div class="th-inner">Товар</div></th>
+                    <th><div class="th-inner">Цена</div></th>
+                    <th><div class="th-inner">Остаток</div></th>
+                    <th><div class="th-inner">Статус</div></th>
+                    <th><div class="th-inner">Сумма на складе</div></th>
+                    <th><div class="th-inner">Действия</div></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr class="product-row">
+                    <td>
+                        <div class="product-cell">
+                            <div class="product-thumb">{{ product.name|slice:":1"|upper }}</div>
+                            <div class="product-meta">
+                                <div class="product-meta__title">{{ product.name }}</div>
+                                <div class="product-meta__sub">SKU-{{ product.id|stringformat:"05d" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="order-amount">₽{{ product.price }}</span></td>
+                    <td>
+                        <span class="stock-badge {% if product.stock <= 5 %}stock-badge--low{% elif product.stock <= 15 %}stock-badge--mid{% else %}stock-badge--ok{% endif %}">
+                            {{ product.stock }} шт.
+                        </span>
+                    </td>
+                    <td>
+                        {% if product.is_active %}
+                        <span class="status-badge status-delivered"><span class="status-dot"></span>Активен</span>
+                        {% else %}
+                        <span class="status-badge status-cancelled"><span class="status-dot"></span>Скрыт</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="order-amount">₽{% widthratio product.price 1 product.stock %}</span></td>
+                    <td>
+                        <button
+                            class="btn btn-ghost btn-sm product-open-btn"
+                            type="button"
+                            data-product-id="{{ product.id }}"
+                            data-product-detail-url="{% url 'dashboard:product_detail_json' product.id %}"
+                            data-product-update-url="{% url 'dashboard:update_product_json' product.id %}"
+                        >
+                            Открыть
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-orders">Товары не найдены</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div id="productManageModal" class="modal">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div class="modal-title">Управление товаром <span id="manageProductSku"></span></div>
+            <button type="button" class="modal-close" data-modal-close="productManageModal" aria-label="Закрыть">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"></path></svg>
+            </button>
+        </div>
+        <form id="manageProductForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="manageProductName">Название</label>
+                    <input id="manageProductName" name="name" type="text" class="form-input" required>
+                </div>
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="manageProductPrice">Цена</label>
+                        <input id="manageProductPrice" name="price" type="number" min="0" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="manageProductStock">Остаток</label>
+                        <input id="manageProductStock" name="stock" type="number" min="0" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group form-group-inline">
+                    <label class="form-label" for="manageProductActive">Активен</label>
+                    <label class="switch">
+                        <input id="manageProductActive" name="is_active" type="checkbox">
+                        <span class="switch-track"><span class="switch-thumb"></span></span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-modal-close="productManageModal">Отмена</button>
+                <button type="submit" class="btn btn-primary" id="manageProductSubmitBtn">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="createProductModal" class="modal">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div class="modal-title">Добавить товар</div>
+            <button type="button" class="modal-close" data-modal-close="createProductModal" aria-label="Закрыть">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"></path></svg>
+            </button>
+        </div>
+        <form id="createProductForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="createProductName">Название</label>
+                    <input id="createProductName" name="name" type="text" class="form-input" placeholder="Например: iPhone 15 Pro" required>
+                </div>
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="createProductPrice">Цена</label>
+                        <input id="createProductPrice" name="price" type="number" min="0" class="form-input" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="createProductStock">Остаток</label>
+                        <input id="createProductStock" name="stock" type="number" min="0" class="form-input" value="0" required>
+                    </div>
+                </div>
+                <div class="form-group form-group-inline">
+                    <label class="form-label" for="createProductActive">Активен</label>
+                    <label class="switch">
+                        <input id="createProductActive" name="is_active" type="checkbox" checked>
+                        <span class="switch-track"><span class="switch-thumb"></span></span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-modal-close="createProductModal">Отмена</button>
+                <button type="submit" class="btn btn-primary" id="createProductSubmitBtn">Создать</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

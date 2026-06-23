@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Заказы{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="page-header-row">
+        <div>
+            <div class="page-title">{{ page_title }}</div>
+            <div class="page-subtitle">{{ page_subtitle }}</div>
+        </div>
+        <button class="btn btn-primary btn-glow" data-dashboard-action="create-order" data-create-order-url="{% url 'dashboard:create_order_json' %}">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1v12M1 7h12"></path></svg>
+            Создать заказ
+        </button>
+    </div>
+</section>
+
+<section class="metrics-grid metrics-grid-compact">
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Всего</span>
+            <div class="metric-icon blue">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><path d="M5 7h6M5 10h4"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ all_orders_count }}</span>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">В обработке</span>
+            <div class="metric-icon amber">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 3v5l3 2"></path><circle cx="8" cy="8" r="5.5"></circle></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ pending_count }}</span>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Доставлены</span>
+            <div class="metric-icon green">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 8l2.2 2.2L12.5 4.5"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ delivered_count }}</span>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Отменены</span>
+            <div class="metric-icon red">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4L4 12"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ cancelled_count }}</span>
+    </div>
+</section>
+
+<section class="filter-row">
+    <div class="search-wrap">
+        <input id="ordersSearch" class="search-input" placeholder="Поиск заказов..." autocomplete="off">
+        <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L13 13"></path></svg>
+    </div>
+    <button type="button" class="filter-chip active" data-status-filter="all">Все</button>
+    <button type="button" class="filter-chip" data-status-filter="new">Новые</button>
+    <button type="button" class="filter-chip" data-status-filter="pending">В обработке</button>
+    <button type="button" class="filter-chip" data-status-filter="delivered">Доставлены</button>
+    <button type="button" class="filter-chip" data-status-filter="cancelled">Отменены</button>
+    <div class="filter-actions">
+        <button class="btn btn-secondary btn-sm" data-orders-action="advanced-filter">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 3h10M4 7h6M6 11h2"></path></svg>
+            Фильтр
+        </button>
+        <button class="btn btn-ghost btn-sm" data-orders-action="export-csv">Экспорт CSV</button>
+    </div>
+</section>
+
+<section class="card table-card">
+    <div class="table-wrap">
+        <table class="orders-table" id="ordersManagementTable" data-export-name="orders_full">
+            <thead>
+                <tr>
+                    <th class="checkbox-col"><label class="checkbox-wrap"><input type="checkbox" class="checkbox-input" id="selectAllOrders"><span class="checkbox-box"><svg class="checkbox-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"></polyline></svg></span></label></th>
+                    <th><div class="th-inner">№ заказа</div></th>
+                    <th><div class="th-inner">Клиент</div></th>
+                    <th><div class="th-inner">Товар</div></th>
+                    <th><div class="th-inner">Сумма</div></th>
+                    <th><div class="th-inner">Статус</div></th>
+                    <th><div class="th-inner">Дата</div></th>
+                    <th><div class="th-inner">Действия</div></th>
+                </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+                {% for order in orders %}
+                <tr class="order-row status-{{ order.status }}" data-order-id="{{ order.id }}" data-status="{{ order.status }}" data-search="{{ order.id }} {{ order.user.get_full_name|default:order.user.username }} {{ order.first_product|default:''|lower }}">
+                    <td class="checkbox-col">
+                        <label class="checkbox-wrap">
+                            <input type="checkbox" class="checkbox-input row-checkbox">
+                            <span class="checkbox-box"><svg class="checkbox-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"></polyline></svg></span>
+                        </label>
+                    </td>
+                    <td><span class="order-id">#ORD-{{ order.id }}</span></td>
+                    <td>
+                        <div class="client-info">
+                            <div class="client-avatar">{{ order.user.get_full_name|default:order.user.username|slice:":1"|upper }}</div>
+                            <span class="client-name">{{ order.user.get_full_name|default:order.user.username }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="product-name">{{ order.first_product|default:"—"|truncatechars:34 }}</span>
+                        {% if order.items_count and order.items_count > 1 %}<span class="more-items">+{{ order.items_count|add:"-1" }}</span>{% endif %}
+                    </td>
+                    <td><span class="order-amount">₽{{ order.total_amount|floatformat:0 }}</span></td>
+                    <td><span class="status-badge status-{{ order.status }}"><span class="status-dot"></span>{{ order.get_status_display }}</span></td>
+                    <td><span class="order-date">{{ order.created_at|date:"d.m.Y H:i" }}</span></td>
+                    <td>
+                        <button type="button" class="btn btn-ghost btn-sm order-open-btn" data-order-open="{{ order.id }}">Открыть</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="empty-orders">Заказы не найдены</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination">
+        <div class="pagination-info">Показано <span id="ordersVisibleCount">{{ orders|length }}</span> из {{ all_orders_count }} заказов</div>
+    </div>
+</section>
+
+{% include "dashboard/partials/order_modals.html" %}
+{% endblock %}

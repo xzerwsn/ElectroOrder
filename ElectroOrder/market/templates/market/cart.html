@@ -1,0 +1,56 @@
+{% extends "market/base.html" %}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<section class="market-shell section">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Корзина</span>
+            <h2>Товары, которые вы выбрали</h2>
+        </div>
+    </div>
+
+    {% if cart_is_empty %}
+    <div class="empty-state empty-state--panel">
+        Корзина пока пуста. Добавьте товары из каталога, чтобы перейти к оформлению.
+    </div>
+    {% else %}
+    <div class="checkout-layout">
+        <div class="checkout-main">
+            {% for item in cart_items %}
+            <article class="cart-item" data-reveal>
+                <div class="cart-item__info">
+                    <span class="product-card__category">{{ item.product.category|title }}</span>
+                    <h3>{{ item.product.name }}</h3>
+                    <p>{{ item.product.subtitle }} • {{ item.product.stock }} шт. доступно</p>
+                </div>
+                <div class="cart-item__controls">
+                    <form method="post" action="{% url 'market:update_cart_item' item.product.id %}" class="cart-qty-form">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" min="0" max="{{ item.product.stock }}" value="{{ item.quantity }}">
+                        <button type="submit" class="market-btn market-btn--mini">Обновить</button>
+                    </form>
+                    <strong>₽{{ item.line_total }}</strong>
+                    <form method="post" action="{% url 'market:remove_from_cart' item.product.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="market-link market-link--danger">Удалить</button>
+                    </form>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <aside class="checkout-sidebar">
+            <div class="summary-card">
+                <h3>Сумма заказа</h3>
+                <div class="summary-row"><span>Товары</span><strong>₽{{ cart_subtotal }}</strong></div>
+                <div class="summary-row"><span>Доставка</span><strong>{% if cart_delivery_fee %}₽{{ cart_delivery_fee }}{% else %}Бесплатно{% endif %}</strong></div>
+                <div class="summary-row summary-row--total"><span>Итого</span><strong>₽{{ cart_total }}</strong></div>
+                <a href="{% url 'market:checkout' %}" class="market-btn market-btn--primary market-btn--block">Перейти к оформлению</a>
+            </div>
+        </aside>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

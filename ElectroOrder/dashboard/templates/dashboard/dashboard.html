@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Дашборд{% endblock %}
+
+{% block content %}
+{{ orders_chart_data|json_script:"orders-chart-data" }}
+{{ status_chart_data|json_script:"status-chart-data" }}
+
+<section class="page-header">
+    <div class="page-title">{{ page_title }}</div>
+    <div class="page-subtitle">{{ page_subtitle }}</div>
+</section>
+
+<section class="metrics-grid">
+    <div class="card metric-card animate-in">
+        <div class="metric-header">
+            <span class="metric-label">Всего заказов</span>
+            <div class="metric-icon blue">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><path d="M5 7h6M5 9.5h4"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ all_orders_count|default:0 }}</span>
+        <div class="metric-delta {% if orders_month_delta >= 0 %}up{% else %}down{% endif %}">
+            <svg viewBox="0 0 12 12" fill="currentColor"><path d="{% if orders_month_delta >= 0 %}M6 2L10 7H2L6 2z{% else %}M6 10L2 5h8L6 10z{% endif %}"></path></svg>
+            {% if orders_month_delta >= 0 %}+{% endif %}{{ orders_month_delta|floatformat:1 }}% за месяц
+        </div>
+    </div>
+
+    <div class="card metric-card animate-in">
+        <div class="metric-header">
+            <span class="metric-label">Выручка (месяц)</span>
+            <div class="metric-icon teal">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v6M6.5 6.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5S9.3 8 8 8s-1.5.7-1.5 1.5S7.2 11 8 11s1.5-.7 1.5-1.5"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">₽{{ month_revenue|floatformat:0 }}</span>
+        <div class="metric-delta {% if revenue_month_delta >= 0 %}up{% else %}down{% endif %}">
+            <svg viewBox="0 0 12 12" fill="currentColor"><path d="{% if revenue_month_delta >= 0 %}M6 2L10 7H2L6 2z{% else %}M6 10L2 5h8L6 10z{% endif %}"></path></svg>
+            {% if revenue_month_delta >= 0 %}+{% endif %}{{ revenue_month_delta|floatformat:1 }}% к прошлому
+        </div>
+    </div>
+
+    <div class="card metric-card animate-in">
+        <div class="metric-header">
+            <span class="metric-label">Активн. кампании</span>
+            <div class="metric-icon green">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 10L12 3l-2.5 10-3-2.5-1.5 2.5L4.5 11 3 10z"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ active_campaigns_count|default:0 }}</span>
+        <div class="metric-delta up">
+            <svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 2L10 7H2L6 2z"></path></svg>
+            Готово к подключению
+        </div>
+    </div>
+
+    <div class="card metric-card animate-in">
+        <div class="metric-header">
+            <span class="metric-label">Конверсия</span>
+            <div class="metric-icon amber">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12L5 8l3 2 3-4 3 2"></path><path d="M2 12h12"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ conversion_rate|floatformat:2 }}%</span>
+        <div class="metric-delta {% if conversion_delta >= 0 %}up{% else %}down{% endif %}">
+            {% if site_visits_count %}
+                <svg viewBox="0 0 12 12" fill="currentColor"><path d="{% if conversion_delta >= 0 %}M6 2L10 7H2L6 2z{% else %}M6 10L2 5h8L6 10z{% endif %}"></path></svg>
+                {% if conversion_delta >= 0 %}+{% endif %}{{ conversion_delta|floatformat:2 }}% к прошлому
+            {% else %}
+                Нет данных по визитам
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="quick-actions">
+    <button class="btn btn-primary btn-glow btn-lg" data-dashboard-action="create-order" data-create-order-url="{% url 'dashboard:create_order_json' %}">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg>
+        Создать заказ
+    </button>
+    <button class="btn btn-secondary btn-lg" data-dashboard-action="start-ads">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 10L12 3l-2.5 10-3-2.5-1.5 2.5L4.5 11 3 10z"></path></svg>
+        Запустить рекламу
+    </button>
+    <button class="btn btn-ghost" data-dashboard-action="export-csv">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 11v2h10v-2M8 3v7M5 7l3 3 3-3"></path></svg>
+        Экспорт
+    </button>
+</section>
+
+<section class="dashboard-grid">
+    <div class="card chart-card">
+        <div class="section-title">
+            <span>График заказов</span>
+            <div class="section-title-actions">
+                <button type="button" class="filter-chip active" data-chart-period="week">Нед.</button>
+                <button type="button" class="filter-chip" data-chart-period="month">Мес.</button>
+                <button type="button" class="filter-chip" data-chart-period="year">Год</button>
+            </div>
+        </div>
+        <div class="chart-container" id="barChart">
+            <div class="chart-grid-lines" aria-hidden="true">
+                <div class="chart-grid-line"></div>
+                <div class="chart-grid-line"></div>
+                <div class="chart-grid-line"></div>
+                <div class="chart-grid-line"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card donut-card">
+        <div class="section-title">По статусам</div>
+        <div class="donut-wrap">
+            <svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120" id="donutSvg" role="img" aria-label="Статусы заказов"></svg>
+            <div class="donut-legend" id="donutLegend"></div>
+        </div>
+    </div>
+</section>
+
+<section class="card table-card">
+    <div class="section-header-row">
+        <div class="section-title">Последние заказы</div>
+        <a href="{% url 'dashboard:orders' %}" class="btn btn-ghost btn-sm">Все заказы →</a>
+    </div>
+    <div class="table-wrap">
+        <table class="orders-table" data-export-name="dashboard_orders">
+            <thead>
+                <tr>
+                    <th><div class="th-inner">№ заказа</div></th>
+                    <th><div class="th-inner">Клиент</div></th>
+                    <th><div class="th-inner">Товар</div></th>
+                    <th><div class="th-inner">Сумма</div></th>
+                    <th><div class="th-inner">Статус</div></th>
+                    <th><div class="th-inner">Дата</div></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr class="order-row status-{{ order.status }}" data-order-id="{{ order.id }}" data-status="{{ order.status }}">
+                    <td><span class="order-id">#ORD-{{ order.id }}</span></td>
+                    <td>
+                        <div class="client-info">
+                            <div class="client-avatar">{{ order.user.get_full_name|default:order.user.username|slice:":1"|upper }}</div>
+                            <span class="client-name">{{ order.user.get_full_name|default:order.user.username }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="product-name">{{ order.first_product|default:"—"|truncatechars:26 }}</span>
+                        {% if order.items_count and order.items_count > 1 %}<span class="more-items">+{{ order.items_count|add:"-1" }}</span>{% endif %}
+                    </td>
+                    <td><span class="order-amount">₽{{ order.total_amount|floatformat:0 }}</span></td>
+                    <td><span class="status-badge status-{{ order.status }}"><span class="status-dot"></span>{{ order.get_status_display }}</span></td>
+                    <td><span class="order-date">{{ order.created_at|date:"d.m.Y" }}</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-orders">Заказы не найдены</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% include "dashboard/partials/order_modals.html" %}
+{% endblock %}

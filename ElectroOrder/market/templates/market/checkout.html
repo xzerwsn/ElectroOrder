@@ -1,0 +1,76 @@
+{% extends "market/base.html" %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<section class="market-shell section">
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Checkout</span>
+            <h2>Оформление заказа и оплата</h2>
+        </div>
+    </div>
+
+    <div class="checkout-layout">
+        <div class="checkout-main">
+            <form method="post" action="{% url 'market:place_order' %}" class="checkout-form">
+                {% csrf_token %}
+                <div class="checkout-panel" data-reveal>
+                    <h3>Контакты</h3>
+                    <div class="checkout-grid">
+                        <label>
+                            <span>Имя и фамилия</span>
+                            <input type="text" name="full_name" value="{{ checkout_defaults.full_name }}" required>
+                        </label>
+                        <label>
+                            <span>Email</span>
+                            <input type="email" name="email" value="{{ checkout_defaults.email }}" required>
+                        </label>
+                        <label>
+                            <span>Телефон</span>
+                            <input type="text" name="phone" value="{{ checkout_defaults.phone }}" required>
+                        </label>
+                        <label>
+                            <span>Город</span>
+                            <input type="text" name="city" value="{{ checkout_defaults.city }}" required>
+                        </label>
+                    </div>
+                    <label>
+                        <span>Адрес доставки</span>
+                        <textarea name="address" rows="4" required>{{ checkout_defaults.address }}</textarea>
+                    </label>
+                </div>
+
+                <div class="checkout-panel" data-reveal>
+                    <h3>Способ оплаты</h3>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="card" {% if checkout_defaults.payment_method == 'card' %}checked{% endif %}>
+                        <span>Оплата картой онлайн</span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="cash" {% if checkout_defaults.payment_method == 'cash' %}checked{% endif %}>
+                        <span>Оплата при получении</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="market-btn market-btn--primary">Оплатить и оформить заказ</button>
+            </form>
+        </div>
+
+        <aside class="checkout-sidebar">
+            <div class="summary-card summary-card--sticky" data-reveal>
+                <h3>Ваш заказ</h3>
+                {% for item in cart_items %}
+                <div class="summary-line-item">
+                    <span>{{ item.product.name }} × {{ item.quantity }}</span>
+                    <strong>₽{{ item.line_total }}</strong>
+                </div>
+                {% endfor %}
+                <div class="summary-row"><span>Товары</span><strong>₽{{ cart_subtotal }}</strong></div>
+                <div class="summary-row"><span>Доставка</span><strong>{% if cart_delivery_fee %}₽{{ cart_delivery_fee }}{% else %}Бесплатно{% endif %}</strong></div>
+                <div class="summary-row summary-row--total"><span>Итого</span><strong>₽{{ cart_total }}</strong></div>
+            </div>
+        </aside>
+    </div>
+</section>
+{% endblock %}

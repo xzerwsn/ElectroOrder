@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Реклама{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ads/css/style.css' %}">
+{% endblock %}
+
+{% block content %}
+{{ campaign_chart_data|json_script:"campaign-chart-data" }}
+{{ campaign_status_data|json_script:"campaign-status-data" }}
+
+<section class="page-header">
+    <div class="page-header-row">
+        <div>
+            <div class="page-title">{{ page_title }}</div>
+            <div class="page-subtitle">{{ page_subtitle }}</div>
+        </div>
+        <button class="btn btn-primary btn-glow" type="button" id="openCampaignModal" data-create-campaign-url="{% url 'ads:create_campaign_json' %}">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 1v12M1 7h12"></path></svg>
+            Создать кампанию
+        </button>
+    </div>
+</section>
+
+<section class="metrics-grid metrics-grid-compact">
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Активные кампании</span>
+            <div class="metric-icon green">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 10L12 3l-2.5 10-3-2.5-1.5 2.5L4.5 11 3 10z"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ active_campaigns_count }}</span>
+        <div class="metric-delta up">{{ campaigns_count }} всего</div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Потрачено</span>
+            <div class="metric-icon amber">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v6M6.5 6.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5S9.3 8 8 8s-1.5.7-1.5 1.5S7.2 11 8 11s1.5-.7 1.5-1.5"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">₽{{ spent_total|floatformat:0 }}</span>
+        <div class="metric-delta up">CTR {{ ctr|floatformat:2 }}%</div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">Лиды</span>
+            <div class="metric-icon blue">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 12L5 8l3 2 3-4 3 2"></path><path d="M2 12h12"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ leads_total }}</span>
+        <div class="metric-delta up">CPL ₽{{ cpl|floatformat:0 }}</div>
+    </div>
+    <div class="card metric-card">
+        <div class="metric-header">
+            <span class="metric-label">ROAS</span>
+            <div class="metric-icon teal">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 2v12M2 8h12"></path></svg>
+            </div>
+        </div>
+        <span class="metric-value">{{ roas|floatformat:2 }}x</span>
+        <div class="metric-delta up">Выручка ₽{{ revenue_total|floatformat:0 }}</div>
+    </div>
+</section>
+
+<section class="dashboard-grid ads-grid">
+    <div class="card chart-card">
+        <div class="section-title">
+            <span>Сравнение кампаний</span>
+        </div>
+        <div class="ads-compare-chart" id="campaignCompareChart"></div>
+    </div>
+
+    <div class="card donut-card">
+        <div class="section-title">Статусы кампаний</div>
+        <div class="donut-wrap">
+            <svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120" id="campaignStatusSvg" role="img" aria-label="Статусы кампаний"></svg>
+            <div class="donut-legend" id="campaignStatusLegend"></div>
+        </div>
+    </div>
+</section>
+
+<section class="card table-card">
+    <div class="section-header-row">
+        <div class="section-title">Список кампаний</div>
+        <div class="products-header-actions">
+            <a class="btn btn-secondary btn-sm" href="?period=week">7 дней</a>
+            <a class="btn btn-secondary btn-sm" href="?period=month">30 дней</a>
+            <a class="btn btn-secondary btn-sm" href="?period=quarter">90 дней</a>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table id="campaignsTable" data-export-name="advert_campaigns">
+            <thead>
+                <tr>
+                    <th><div class="th-inner">Кампания</div></th>
+                    <th><div class="th-inner">Канал</div></th>
+                    <th><div class="th-inner">Бюджет</div></th>
+                    <th><div class="th-inner">Потрачено</div></th>
+                    <th><div class="th-inner">Лиды</div></th>
+                    <th><div class="th-inner">ROAS</div></th>
+                    <th><div class="th-inner">Статус</div></th>
+                    <th><div class="th-inner">Действие</div></th>
+                </tr>
+            </thead>
+            <tbody id="campaignTableBody">
+                {% for campaign in campaigns %}
+                <tr>
+                    <td>
+                        <div class="product-cell">
+                            <div class="product-thumb">{{ campaign.name|slice:":1"|upper }}</div>
+                            <div class="product-meta">
+                                <div class="product-meta__title">{{ campaign.name }}</div>
+                                <div class="product-meta__sub">{{ campaign.start_date|date:"d.m.Y" }}{% if campaign.end_date %} - {{ campaign.end_date|date:"d.m.Y" }}{% endif %}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ campaign.get_channel_display }}</td>
+                    <td><span class="order-amount">₽{{ campaign.budget }}</span></td>
+                    <td><span class="order-amount">₽{{ campaign.spent }}</span></td>
+                    <td>{{ campaign.leads }}</td>
+                    <td>{{ campaign.roas|floatformat:2 }}x</td>
+                    <td>
+                        <span class="status-badge ads-status-{{ campaign.status }}" data-campaign-status-badge>
+                            <span class="status-dot"></span>{{ campaign.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if campaign.status == "active" %}
+                        <button class="btn btn-ghost btn-sm campaign-status-btn" type="button" data-next-status="paused" data-update-url="{% url 'ads:update_campaign_status_json' campaign.id %}">Пауза</button>
+                        {% elif campaign.status == "paused" or campaign.status == "draft" %}
+                        <button class="btn btn-ghost btn-sm campaign-status-btn" type="button" data-next-status="active" data-update-url="{% url 'ads:update_campaign_status_json' campaign.id %}">Запустить</button>
+                        {% else %}
+                        <button class="btn btn-ghost btn-sm campaign-status-btn" type="button" data-next-status="completed" data-update-url="{% url 'ads:update_campaign_status_json' campaign.id %}" disabled>Завершена</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="empty-orders">Кампаний пока нет. Создайте первую рекламную кампанию.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div id="createCampaignModal" class="modal">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div class="modal-title">Новая рекламная кампания</div>
+            <button type="button" class="modal-close" data-modal-close="createCampaignModal" aria-label="Закрыть">
+                <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"></path></svg>
+            </button>
+        </div>
+        <form id="createCampaignForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="campaignName">Название</label>
+                    <input id="campaignName" name="name" type="text" class="form-input" placeholder="Например: Летний спрос на смартфоны" required>
+                </div>
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="campaignChannel">Канал</label>
+                        <select id="campaignChannel" name="channel" class="form-select" required>
+                            <option value="">Выберите канал</option>
+                            {% for value, label in campaign_channels %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="campaignBudget">Бюджет</label>
+                        <input id="campaignBudget" name="budget" type="number" min="0" class="form-input" value="50000" required>
+                    </div>
+                </div>
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="campaignStartDate">Старт</label>
+                        <input id="campaignStartDate" name="start_date" type="date" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="campaignSeedProduct">Фокусный товар</label>
+                        <select id="campaignSeedProduct" name="seed_product" class="form-select">
+                            <option value="">Не выбран</option>
+                            {% for product in products_for_promo %}
+                            <option value="{{ product.name }}">{{ product.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="campaignDescription">Описание</label>
+                    <textarea id="campaignDescription" name="description" class="form-textarea" placeholder="Кратко опишите оффер, сегмент и цель кампании"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-modal-close="createCampaignModal">Отмена</button>
+                <button type="submit" class="btn btn-primary" id="createCampaignSubmitBtn">Создать</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'ads/js/script.js' %}"></script>
+{% endblock %}

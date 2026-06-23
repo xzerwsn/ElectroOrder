@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Настройки{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="page-title">{{ page_title }}</div>
+    <div class="page-subtitle">{{ page_subtitle }}</div>
+</section>
+
+<section class="settings-grid">
+    <div class="card settings-card">
+        <div class="settings-card__title">Профиль</div>
+        <div class="form-group">
+            <label class="form-label" for="settingsProfileName">Имя</label>
+            <input id="settingsProfileName" class="form-input" value="{{ settings_profile_name }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="settingsProfileEmail">Email</label>
+            <input id="settingsProfileEmail" class="form-input" value="{{ settings_profile_email }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="settingsProfileRole">Роль</label>
+            <input id="settingsProfileRole" class="form-input form-input-readonly form-input-disabled" value="{{ settings_profile_role }}" readonly disabled>
+        </div>
+        <button class="btn btn-primary" type="button" data-settings-action="save-profile" data-settings-profile-url="{% url 'dashboard:update_profile_json' %}">Сохранить</button>
+    </div>
+
+    <div class="card settings-card">
+        <div class="settings-card__title">Интерфейс</div>
+        <div class="settings-row settings-row--top">
+            <span class="settings-row__label">Тема оформления</span>
+            <div class="theme-pill-group">
+                <button type="button" class="filter-chip" data-theme-choice="dark">Тёмная</button>
+                <button type="button" class="filter-chip" data-theme-choice="light">Светлая</button>
+                <button type="button" class="filter-chip active" data-theme-choice="system">Системная</button>
+            </div>
+        </div>
+        <div class="settings-row">
+            <span class="settings-row__label">Уведомления</span>
+            <label class="switch">
+                <input type="checkbox" id="settingsNotifications" checked>
+                <span class="switch-track"><span class="switch-thumb"></span></span>
+            </label>
+        </div>
+        <div class="settings-row">
+            <span class="settings-row__label">Анимации интерфейса</span>
+            <label class="switch">
+                <input type="checkbox" id="settingsAnimations" checked>
+                <span class="switch-track"><span class="switch-thumb"></span></span>
+            </label>
+        </div>
+        <div class="settings-row">
+            <span class="settings-row__label">Компактный режим</span>
+            <label class="switch">
+                <input type="checkbox" id="settingsCompact">
+                <span class="switch-track"><span class="switch-thumb"></span></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="card settings-card">
+        <div class="settings-card__title">API-интеграции</div>
+        <div class="integration-item">
+            <div>
+                <div class="integration-item__title">ВКонтакте Ads</div>
+                <div class="integration-item__sub">Подключён</div>
+            </div>
+            <span class="integration-badge integration-badge--active"><span class="status-dot"></span>Активен</span>
+        </div>
+        <div class="integration-item">
+            <div>
+                <div class="integration-item__title">MyTarget</div>
+                <div class="integration-item__sub">Подключён</div>
+            </div>
+            <span class="integration-badge integration-badge--active"><span class="status-dot"></span>Активен</span>
+        </div>
+        <div class="integration-item">
+            <div>
+                <div class="integration-item__title">Telegram Ads</div>
+                <div class="integration-item__sub">Не настроен</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" type="button" data-settings-action="connect-telegram">Подключить</button>
+        </div>
+    </div>
+
+    <div class="card settings-card">
+        <div class="settings-card__title">Безопасность</div>
+        <div class="security-actions">
+            <button class="security-btn" type="button" data-settings-action="2fa">Настроить двухфакторную авторизацию</button>
+            <button class="security-btn" type="button" data-settings-action="password">Изменить пароль</button>
+            <button class="security-btn security-btn--danger" type="button" data-settings-action="logout-all">Завершить все сессии</button>
+        </div>
+    </div>
+</section>
+{% endblock %}
